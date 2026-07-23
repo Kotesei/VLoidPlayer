@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import { createRequire } from "node:module";
+import { parseFile } from "music-metadata";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -33,6 +34,8 @@ function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     width: 320,
     height: 568,
+    minWidth: 320,
+    minHeight: 568,
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
     },
@@ -43,6 +46,18 @@ function createWindow() {
   // Test active push message to Renderer-process.
   win.webContents.on("did-finish-load", () => {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
+  });
+
+  ipcMain.handle("get-metadata", async (_, filePath: string) => {
+    const metadata = await parseFile(filePath);
+
+    return {
+      songName: metadata.common.title,
+      artist: metadata.common.artist,
+      album: metadata.common.album,
+      coverArt: metadata.common.picture,
+      duration: metadata.format.duration,
+    };
   });
 
   if (VITE_DEV_SERVER_URL) {

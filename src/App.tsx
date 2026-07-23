@@ -1,43 +1,59 @@
 import "./App.css";
-import Lottie from "lottie-web";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getMetaData } from "./helpers/metadata";
+import { animate } from "./helpers/animation";
 
 function App() {
   const containerRef = useRef(null);
+  const [playingSong, setPlayingSong] = useState<string | null>(null);
+  const [metadata, setMetadata] = useState<SongMetaData | null>(null);
+  const [anim, setAnim] = useState<string | null>(null);
 
+  // Checks if there is metadata [Debugging]
   useEffect(() => {
-    if (!containerRef.current) return;
-    const animation = Lottie.loadAnimation({
-      container: containerRef.current,
-      renderer: "svg",
-      loop: true,
-      autoplay: true,
-      path: "./src/assets/test.json",
-    });
+    if (!metadata) return;
+    console.log(metadata);
+  }, [metadata]);
 
-    return () => {
-      animation.destroy();
-    };
+  // Do stuff if song is playing
+  useEffect(() => {
+    if (!playingSong) return;
+    // Runs the function to get the metadata for a song. Args: (song_location, metadata_state)
+    getMetaData(playingSong, setMetadata);
+
+    // Start animation
+    if (!containerRef.current || !anim) return;
+    const animData = animate(containerRef.current, anim);
+
+    return () => animData.destroy();
+  }, [playingSong]);
+
+  // Start up sequence [Debugging]
+  useEffect(() => {
+    // Set current song
+    setPlayingSong("./src/assets/sample3.flac");
+    // Set current animation
+    setAnim("./src/assets/test.json");
   }, []);
 
   return (
     <>
       <div className="h-full w-full flex-col flex">
-        <div className="h-[18%] w-full" id="navigation">
+        <div className="minh-[10dvh] w-full" id="navigation">
           <div className="text-purple-300 flex-1 flex flex-col h-full justify-center">
             <h2 className="text-[10px] leading-2.5 flex justify-center">
-              Artist
+              {metadata?.artist ?? "Unknown"}
             </h2>
             <h2 className="text-xs flex  leading-3.5 justify-center">
-              Song Name Sample 1
+              {metadata?.songName ?? "Unknown"}
             </h2>
             <h2 className="text-[10px] flex leading-3.5 justify-center">
-              Album Name
+              {metadata?.album ?? "Unknown"}
             </h2>
           </div>
         </div>
         <div
-          className="h-[62%] w-full py-2 flex flex-col items-center px-13"
+          className="max-h-[70dvh] w-full flex flex-col items-center px-13"
           id="songContainer"
         >
           <div className="flex w-full justify-between h-3.5 items-center mb-2">
@@ -53,10 +69,11 @@ function App() {
           </div>
           <div
             ref={containerRef}
-            className="border-purple-300 bg-black border-2 min-w-50 min-h-50 mb-2"
+            style={{ backgroundImage: `url(${metadata?.coverArt})` }}
+            className="border-purple-300 border-2 min-w-50 min-h-50 aspect-square h-[65dvw] bg-[url] bg-cover"
             id="coverArt"
           ></div>
-          <div className="w-full flex-1">
+          <div className="w-full flex-1 flex flex-col pt-[5dvh]">
             <div className="flex justify-between">
               <img className="h-5 invert-100" src="./src/assets/shuffle.svg" />
               <img
@@ -67,11 +84,11 @@ function App() {
             </div>
             <div className="w-full h-5 mt-5">
               <div className="w-full h-[1.5px] bg-purple-300 relative">
-                <div className="h-3 w-3 absolute translate-y-1/2 bottom-0 left-15 bg-purple-300 rounded-full"></div>
+                <div className="h-2.5 w-2.5 absolute translate-y-1/2 bottom-[50%] left-0 bg-purple-300 rounded-full"></div>
               </div>
               <div className="text-purple-300 flex justify-between text-[9px] pt-1">
-                <p>0:30</p>
-                <p>1:49</p>
+                <p>{metadata?.duration ? "0:00" : "-:--"}</p>
+                <p>{metadata?.duration ?? "-:--"}</p>
               </div>
             </div>
             <div className="flex justify-around px-5">
@@ -88,14 +105,12 @@ function App() {
           </div>
         </div>
         <div
-          className="h-[20%] w-full items-center gap-2 flex flex-col justify-end"
+          className="h-[20dvh] w-full items-center gap-2 flex flex-col justify-end"
           id="queue"
         >
-          <div className="flex flex-col items-center flex-1 pt-1">
+          <div className="flex flex-col items-center flex-1 py-[3dvh] justify-end">
             <h2 className="text-purple-300 text-[11px]">Playing From</h2>
-            <p className="text-purple-300 text-[10px]">
-              Song Playlist Location
-            </p>
+            <p className="text-purple-300 text-[10px]">Library</p>
           </div>
           <div className="w-full gap-2 flex items-center px-3 h-[45%] border-t border-purple-300">
             <img
