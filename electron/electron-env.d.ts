@@ -34,3 +34,8 @@ interface SongMetaData {
   duration?: number;
   coverArt?: Array;
 }
+
+interface MediaItem {
+  src: string;
+  currentDuration: string;
+}

@@ -26,3 +26,7 @@
 - [ ] Fully Built Electron App
 - [ ] Mobile Version
 - [ ] At least two custom animations inspired from [channel](https://www.youtube.com/@channelcaststation)
+
+# Things to consider for final build
+
+- Do some tests in the network tab and make sure everything only needs to render once. Things like the animation or the cover art can render as much as needed since those are always changing. I noticed icons like svgs on click are rerendering and while it's very little impact in terms of size when rendering, I rather eliminate rerendering if it is not required.

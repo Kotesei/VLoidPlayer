@@ -2,12 +2,20 @@ import "./App.css";
 import { useEffect, useRef, useState } from "react";
 import { getMetaData } from "./helpers/metadata";
 import { animate } from "./helpers/animation";
+import { AnimationItem } from "lottie-web";
+import { formatTime } from "./helpers/formatTime";
 
 function App() {
   const containerRef = useRef(null);
-  const [playingSong, setPlayingSong] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [animData, setAnimData] = useState<AnimationItem | null>(null);
+  const [currentSong, setCurrentSong] = useState<MediaItem | null>(null);
   const [metadata, setMetadata] = useState<SongMetaData | null>(null);
   const [anim, setAnim] = useState<string | null>(null);
+  const [currentSpeed, setSpeed] = useState<number>(1);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const sliderBarRef = useRef(null);
+  const [sliderPos, setSliderPos] = useState<number>(0);
 
   // Checks if there is metadata [Debugging]
   useEffect(() => {
@@ -17,28 +25,79 @@ function App() {
 
   // Do stuff if song is playing
   useEffect(() => {
-    if (!playingSong) return;
     // Runs the function to get the metadata for a song. Args: (song_location, metadata_state)
-    getMetaData(playingSong, setMetadata);
 
-    // Start animation
-    if (!containerRef.current || !anim) return;
-    const animData = animate(containerRef.current, anim);
+    if (!isPlaying) {
+      if (!animData) return;
+      animData.setSpeed(0);
+      audioRef.current?.pause();
+      return;
+    } else if (animData && isPlaying) {
+      animData.setSpeed(currentSpeed);
+      audioRef.current?.play();
+    }
+  }, [isPlaying]);
 
-    return () => animData.destroy();
-  }, [playingSong]);
-
-  // Start up sequence [Debugging]
   useEffect(() => {
-    // Set current song
-    setPlayingSong("./src/assets/sample3.flac");
+    if (!containerRef.current || !anim) return;
+    const animation = animate(containerRef.current, anim);
+    animation.setSpeed(currentSpeed);
+    setAnimData(animation);
+
+    return () => animation.destroy();
+  }, [anim]);
+
+  useEffect(() => {
+    if (!currentSong) return;
+    getMetaData(currentSong.src, setMetadata);
+
+    const timer = setInterval(() => {
+      setCurrentSong((prev) => {
+        if (!prev) {
+          return {
+            src: "",
+            currentDuration: "-:--",
+          };
+        }
+
+        if (audioRef.current) {
+          const meterCompletion =
+            (audioRef.current.currentTime / audioRef.current.duration) * 100;
+          setSliderPos(+meterCompletion.toFixed(2));
+        }
+
+        return {
+          ...prev,
+          currentDuration: formatTime(
+            audioRef.current ? audioRef.current.currentTime : 0,
+          ),
+        };
+      });
+    }, 25);
+
+    return () => clearInterval(timer);
+  }, [audioRef.current]);
+
+  function handlePlayPause() {
     // Set current animation
-    setAnim("./src/assets/test.json");
-  }, []);
+    if (!anim) setAnim("./src/assets/test.json");
+    if (!currentSong) {
+      const src = "./src/assets/sample2.flac";
+      audioRef.current = new Audio(src);
+      const song = {
+        src,
+        audio: audioRef.current,
+        currentDuration: "0:00",
+      };
+      setCurrentSong(song);
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  }
 
   return (
     <>
-      <div className="h-full w-full flex-col flex">
+      <div className="h-full w-full flex-col flex justify-end gap-3">
         <div className="minh-[10dvh] w-full" id="navigation">
           <div className="text-purple-300 flex-1 flex flex-col h-full justify-center">
             <h2 className="text-[10px] leading-2.5 flex justify-center">
@@ -82,12 +141,17 @@ function App() {
               />
               <img className="h-5 invert-100" src="./src/assets/repeat.svg" />
             </div>
-            <div className="w-full h-5 mt-5">
+            <div ref={sliderBarRef} className="w-full h-5 mt-5">
               <div className="w-full h-[1.5px] bg-purple-300 relative">
-                <div className="h-2.5 w-2.5 absolute translate-y-1/2 bottom-[50%] left-0 bg-purple-300 rounded-full"></div>
+                <div
+                  style={{ left: `${sliderPos}%` }}
+                  className="h-2.5 w-2.5 absolute translate-y-1/2 -translate-x-full bottom-[50%] bg-purple-300 rounded-full"
+                ></div>
               </div>
               <div className="text-purple-300 flex justify-between text-[9px] pt-1">
-                <p>{metadata?.duration ? "0:00" : "-:--"}</p>
+                <p>
+                  {metadata?.duration ? currentSong?.currentDuration : "-:--"}
+                </p>
                 <p>{metadata?.duration ?? "-:--"}</p>
               </div>
             </div>
@@ -96,7 +160,11 @@ function App() {
                 className="h-5 invert-100"
                 src="./src/assets/play-skip-back.svg"
               />
-              <img className="h-5 invert-100" src="./src/assets/play.svg" />
+              <img
+                onClick={handlePlayPause}
+                className="h-5 invert-100"
+                src={`./src/assets/${isPlaying ? "pause" : "play"}.svg`}
+              />
               <img
                 className="h-5 invert-100"
                 src="./src/assets/play-skip-forward.svg"
