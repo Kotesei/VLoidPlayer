@@ -4,8 +4,10 @@ import { getMetaData } from "./helpers/metadata";
 import { animate } from "./helpers/animation";
 import { AnimationItem } from "lottie-web";
 import { formatTime } from "./helpers/formatTime";
+import * as Slider from "@radix-ui/react-slider";
 
 function App() {
+  const sliderRef = useRef<HTMLSpanElement>(null);
   const containerRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [animData, setAnimData] = useState<AnimationItem | null>(null);
@@ -14,8 +16,8 @@ function App() {
   const [anim, setAnim] = useState<string | null>(null);
   const [currentSpeed, setSpeed] = useState<number>(1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const sliderBarRef = useRef(null);
   const [sliderPos, setSliderPos] = useState<number>(0);
+  const [isSeeking, setIsSeeking] = useState<boolean>(false);
 
   // Checks if there is metadata [Debugging]
   useEffect(() => {
@@ -49,7 +51,8 @@ function App() {
 
   useEffect(() => {
     if (!currentSong) return;
-    getMetaData(currentSong.src, setMetadata);
+    if (!isPlaying) return;
+    if (!metadata) getMetaData(currentSong.src, setMetadata);
 
     const timer = setInterval(() => {
       setCurrentSong((prev) => {
@@ -63,7 +66,9 @@ function App() {
         if (audioRef.current) {
           const meterCompletion =
             (audioRef.current.currentTime / audioRef.current.duration) * 100;
-          setSliderPos(+meterCompletion.toFixed(2));
+          if (!isSeeking) {
+            setSliderPos(+meterCompletion.toFixed(2));
+          }
         }
 
         return {
@@ -76,13 +81,26 @@ function App() {
     }, 25);
 
     return () => clearInterval(timer);
+  }, [audioRef.current, isSeeking, isPlaying]);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+
+    audio.addEventListener("ended", () => {
+      setIsPlaying(false);
+      setCurrentSong((prev) => {
+        if (!prev) return null;
+        return { ...prev, currentDuration: String(metadata?.duration) };
+      });
+    });
   }, [audioRef.current]);
 
   function handlePlayPause() {
     // Set current animation
     if (!anim) setAnim("./src/assets/test.json");
     if (!currentSong) {
-      const src = "./src/assets/sample2.flac";
+      const src = "./src/assets/sample1.flac";
       audioRef.current = new Audio(src);
       const song = {
         src,
@@ -95,18 +113,37 @@ function App() {
     setIsPlaying(!isPlaying);
   }
 
+  function handleSeek(e: number[]) {
+    if (!audioRef.current) return;
+    setIsSeeking(true);
+    setSliderPos(e[0]);
+  }
+
+  useEffect(() => {
+    if (isSeeking) return;
+    if (!sliderRef.current) return;
+    if (!audioRef.current) return;
+    const sliderThumb = sliderRef.current.querySelector('[role="slider"]');
+
+    if (sliderThumb) {
+      const value = sliderThumb.getAttribute("aria-valuenow");
+      const meterCompletion = (Number(value) / 100) * audioRef.current.duration;
+      audioRef.current.currentTime = +meterCompletion;
+    }
+  }, [isSeeking]);
+
   return (
     <>
       <div className="h-full w-full flex-col flex justify-end gap-3">
         <div className="minh-[10dvh] w-full" id="navigation">
           <div className="text-purple-300 flex-1 flex flex-col h-full justify-center">
-            <h2 className="text-[10px] leading-2.5 flex justify-center">
+            <h2 className="text-[9px] leading-2.5 flex justify-center italic">
               {metadata?.artist ?? "Unknown"}
             </h2>
             <h2 className="text-xs flex  leading-3.5 justify-center">
               {metadata?.songName ?? "Unknown"}
             </h2>
-            <h2 className="text-[10px] flex leading-3.5 justify-center">
+            <h2 className="text-[9px] flex leading-3.5 justify-center font-medium">
               {metadata?.album ?? "Unknown"}
             </h2>
           </div>
@@ -117,11 +154,13 @@ function App() {
         >
           <div className="flex w-full justify-between h-3.5 items-center mb-2">
             <img
+              draggable="false"
               className="h-full invert-100"
               src="./src/assets/arrow-outline.svg"
             />
 
             <img
+              draggable="false"
               className="h-full invert-100"
               src="./src/assets/ellipsis-vertical.svg"
             />
@@ -134,19 +173,38 @@ function App() {
           ></div>
           <div className="w-full flex-1 flex flex-col pt-[5dvh]">
             <div className="flex justify-between">
-              <img className="h-5 invert-100" src="./src/assets/shuffle.svg" />
               <img
+                draggable="false"
+                className="h-5 invert-100"
+                src="./src/assets/shuffle.svg"
+              />
+              <img
+                draggable="false"
                 className="h-5 invert-100"
                 src="./src/assets/heart-outline.svg"
               />
-              <img className="h-5 invert-100" src="./src/assets/repeat.svg" />
+              <img
+                draggable="false"
+                className="h-5 invert-100"
+                src="./src/assets/repeat.svg"
+              />
             </div>
-            <div ref={sliderBarRef} className="w-full h-5 mt-5">
-              <div className="w-full h-[1.5px] bg-purple-300 relative">
-                <div
-                  style={{ left: `${sliderPos}%` }}
-                  className="h-2.5 w-2.5 absolute translate-y-1/2 -translate-x-full bottom-[50%] bg-purple-300 rounded-full"
-                ></div>
+            <div className="w-full h-5 mt-5">
+              <div className="w-full h-[1.5px] flex justify-center items-center bg-purple-300 relative">
+                <Slider.Root
+                  ref={sliderRef}
+                  className="w-full absolute flex h-full"
+                  value={[sliderPos]}
+                  onValueChange={handleSeek}
+                  onPointerUp={() => setIsSeeking(false)}
+                  max={100}
+                  step={0.1}
+                >
+                  <Slider.Track className="bg-purple-500 flex-1">
+                    <Slider.Range className="absolute h-full bg-white" />
+                  </Slider.Track>
+                  <Slider.Thumb className="w-3 h-3 rounded-full block bg-white top-0 -translate-y-1/2" />
+                </Slider.Root>
               </div>
               <div className="text-purple-300 flex justify-between text-[9px] pt-1">
                 <p>
@@ -157,15 +215,18 @@ function App() {
             </div>
             <div className="flex justify-around px-5">
               <img
+                draggable="false"
                 className="h-5 invert-100"
                 src="./src/assets/play-skip-back.svg"
               />
               <img
-                onClick={handlePlayPause}
+                draggable="false"
+                onClick={() => handlePlayPause()}
                 className="h-5 invert-100"
                 src={`./src/assets/${isPlaying ? "pause" : "play"}.svg`}
               />
               <img
+                draggable="false"
                 className="h-5 invert-100"
                 src="./src/assets/play-skip-forward.svg"
               />
@@ -182,6 +243,7 @@ function App() {
           </div>
           <div className="w-full gap-2 flex items-center px-3 h-[45%] border-t border-purple-300">
             <img
+              draggable="false"
               className="h-[30%] rotate-180 invert-100"
               src="./src/assets/arrow-outline.svg"
             />
@@ -190,6 +252,7 @@ function App() {
               <p>Song Name Sample 2</p>
             </div>
             <img
+              draggable="false"
               className="h-5 invert-100"
               src="./src/assets/heart-outline.svg"
             />

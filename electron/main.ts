@@ -36,6 +36,7 @@ function createWindow() {
     height: 568,
     minWidth: 320,
     minHeight: 568,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
     },
@@ -66,6 +67,9 @@ function createWindow() {
     // win.loadFile('dist/index.html')
     win.loadFile(path.join(RENDERER_DIST, "index.html"));
   }
+  win.once("ready-to-show", () => {
+    win?.show();
+  });
 }
 
 // Quit when all windows are closed, except on macOS. There, it's common

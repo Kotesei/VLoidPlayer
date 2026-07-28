@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-slider": "^1.4.7",
     "@tailwindcss/vite": "^4.3.3",
     "lottie-web": "^5.13.0",
     "music-metadata": "^11.14.0",
