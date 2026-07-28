@@ -6,6 +6,14 @@ import { AnimationItem } from "lottie-web";
 import { formatTime } from "./helpers/formatTime";
 import * as Slider from "@radix-ui/react-slider";
 
+const sampleTrackList = [
+  "sample1.flac",
+  "sample2.flac",
+  "sample3.flac",
+  "sample4.flac",
+  "sample5.flac",
+];
+
 function App() {
   const sliderRef = useRef<HTMLSpanElement>(null);
   const containerRef = useRef(null);
@@ -96,7 +104,7 @@ function App() {
     // Set current animation
     if (!anim) setAnim("./src/assets/test.json");
     if (!currentSong) {
-      const src = "./src/assets/sample5.flac";
+      const src = "./src/assets/sample2.flac";
       audioRef.current = new Audio(src);
       const song = {
         src,
@@ -118,9 +126,7 @@ function App() {
   function handlePreviousTrack() {
     if (!audioRef.current) return;
     if (audioRef.current.currentTime > 2) {
-      console.log("same track");
       audioRef.current.currentTime = 0;
-      console.log(currentSong);
       setCurrentSong((prev) => {
         if (!prev) return null;
         return { ...prev, currentDuration: "0:00" };
@@ -128,8 +134,52 @@ function App() {
 
       setSliderPos(0);
     } else {
-      console.log("Previous Track");
+      if (!currentSong) return;
+      const currentSongFile =
+        currentSong.src.split("/")[currentSong.src.split("/").length - 1];
+      const prevTrack =
+        sampleTrackList[sampleTrackList.indexOf(currentSongFile) - 1];
+      if (prevTrack) {
+        audioRef.current.src = "";
+        const src = `./src/assets/${prevTrack}`;
+        audioRef.current = new Audio(src);
+        const song = {
+          src,
+          audio: audioRef.current,
+          currentDuration: "0:00",
+        };
+        getMetaData(src, setMetadata);
+        setCurrentSong(song);
+        audioRef.current.play();
+      } else {
+        audioRef.current.currentTime = 0;
+      }
     }
+  }
+
+  function handleNextTrack() {
+    if (!currentSong) return;
+    if (!audioRef.current) return;
+    const currentSongFile =
+      currentSong.src.split("/")[currentSong.src.split("/").length - 1];
+    audioRef.current.src = "";
+    let src;
+    const nextTrack =
+      sampleTrackList[sampleTrackList.indexOf(currentSongFile) + 1];
+    if (!nextTrack) {
+      src = `./src/assets/${sampleTrackList[0]}`;
+    } else {
+      src = `./src/assets/${nextTrack}`;
+    }
+    audioRef.current = new Audio(src);
+    const song = {
+      src,
+      audio: audioRef.current,
+      currentDuration: "0:00",
+    };
+    getMetaData(src, setMetadata);
+    setCurrentSong(song);
+    audioRef.current.play();
   }
 
   useEffect(() => {
@@ -241,6 +291,7 @@ function App() {
                 src={`./src/assets/${isPlaying ? "pause" : "play"}.svg`}
               />
               <img
+                onClick={handleNextTrack}
                 draggable="false"
                 className="h-5 invert-100"
                 src="./src/assets/play-skip-forward.svg"
