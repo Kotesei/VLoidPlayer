@@ -22,7 +22,17 @@ function App() {
   // Checks if there is metadata [Debugging]
   useEffect(() => {
     if (!metadata) return;
+    if (!audioRef.current) return;
     console.log(metadata);
+    const audio = audioRef.current;
+
+    audio.addEventListener("ended", () => {
+      setIsPlaying(false);
+      setCurrentSong((prev) => {
+        if (!prev) return null;
+        return { ...prev, currentDuration: String(metadata?.duration) };
+      });
+    });
   }, [metadata]);
 
   // Do stuff if song is playing
@@ -51,7 +61,6 @@ function App() {
 
   useEffect(() => {
     if (!currentSong) return;
-    if (!isPlaying) return;
     if (!metadata) getMetaData(currentSong.src, setMetadata);
 
     const timer = setInterval(() => {
@@ -83,24 +92,11 @@ function App() {
     return () => clearInterval(timer);
   }, [audioRef.current, isSeeking, isPlaying]);
 
-  useEffect(() => {
-    if (!audioRef.current) return;
-    const audio = audioRef.current;
-
-    audio.addEventListener("ended", () => {
-      setIsPlaying(false);
-      setCurrentSong((prev) => {
-        if (!prev) return null;
-        return { ...prev, currentDuration: String(metadata?.duration) };
-      });
-    });
-  }, [audioRef.current]);
-
   function handlePlayPause() {
     // Set current animation
     if (!anim) setAnim("./src/assets/test.json");
     if (!currentSong) {
-      const src = "./src/assets/sample1.flac";
+      const src = "./src/assets/sample5.flac";
       audioRef.current = new Audio(src);
       const song = {
         src,
@@ -117,6 +113,23 @@ function App() {
     if (!audioRef.current) return;
     setIsSeeking(true);
     setSliderPos(e[0]);
+  }
+
+  function handlePreviousTrack() {
+    if (!audioRef.current) return;
+    if (audioRef.current.currentTime > 2) {
+      console.log("same track");
+      audioRef.current.currentTime = 0;
+      console.log(currentSong);
+      setCurrentSong((prev) => {
+        if (!prev) return null;
+        return { ...prev, currentDuration: "0:00" };
+      });
+
+      setSliderPos(0);
+    } else {
+      console.log("Previous Track");
+    }
   }
 
   useEffect(() => {
@@ -197,6 +210,7 @@ function App() {
                   value={[sliderPos]}
                   onValueChange={handleSeek}
                   onPointerUp={() => setIsSeeking(false)}
+                  onKeyUp={() => setIsSeeking(false)}
                   max={100}
                   step={0.1}
                 >
@@ -215,13 +229,14 @@ function App() {
             </div>
             <div className="flex justify-around px-5">
               <img
+                onClick={handlePreviousTrack}
                 draggable="false"
                 className="h-5 invert-100"
                 src="./src/assets/play-skip-back.svg"
               />
               <img
                 draggable="false"
-                onClick={() => handlePlayPause()}
+                onClick={handlePlayPause}
                 className="h-5 invert-100"
                 src={`./src/assets/${isPlaying ? "pause" : "play"}.svg`}
               />
