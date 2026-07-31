@@ -30,3 +30,5 @@
 # Things to consider for final build
 
 - Do some tests in the network tab and make sure everything only needs to render once. Things like the animation or the cover art can render as much as needed since those are always changing. I noticed icons like svgs on click are rerendering and while it's very little impact in terms of size when rendering, I rather eliminate rerendering if it is not required.
+
+- Music should be prerendered for web example, probably gonna have a loader before the app loads since this app is not intended for use with internet (I might or might not look into server sided things but I really want this to be a standalone music player)

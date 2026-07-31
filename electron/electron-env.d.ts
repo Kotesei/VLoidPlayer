@@ -25,17 +25,18 @@ declare namespace NodeJS {
 interface Window {
   ipcRenderer: import("electron").IpcRenderer;
   handlers;
+  dbHandlers;
 }
 
-interface SongMetaData {
-  songName?: string;
-  artist?: string;
-  album?: string;
-  duration?: number;
-  coverArt?: Array;
-}
+// interface SongMetaData {
+//   songName?: string;
+//   artist?: string;
+//   album?: string;
+//   duration?: number;
+//   coverArt?: string[];
+// }
 
-interface MediaItem {
-  src: string;
-  currentDuration: string;
-}
+// interface MediaItem {
+//   src: string;
+//   currentDuration: string;
+// }

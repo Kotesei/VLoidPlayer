@@ -1,10 +1,76 @@
 import { app, BrowserWindow, ipcMain } from "electron";
-import { createRequire } from "node:module";
+// import { createRequire } from "node:module";
 import { parseFile } from "music-metadata";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import Database from "better-sqlite3";
+import setUpDBHandlers from "./ipcHandlers";
 
-const require = createRequire(import.meta.url);
+// const require = createRequire(import.meta.url);
+const dbPath = path.join(app.getPath("userData"), "libraries.sqlite");
+const db = new Database(dbPath);
+db.pragma("journal_mode = WAL");
+
+const dbHandlers = {
+  addLikedSong,
+  removeLikedSong,
+  increaseTimesPlayed,
+  getLikedSongs,
+  closedb,
+};
+
+function setUpDatabase() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS liked_songs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    song_name TEXT NOT NULL,
+    album TEXT NOT NULL,
+    artist TEXT NOT NULL,
+    times_played INTEGER NOT NULL DEFAULT 0,
+    duration TEXT NOT NULL
+    )
+    `);
+  console.log("db init");
+}
+
+function addLikedSong(song: object) {
+  console.log(song);
+  const stmt = db.prepare(
+    "INSERT INTO liked_songs (song_name, album, artist, duration) VALUES (?, ?, ?, ?)",
+  );
+  const info = stmt.run(song.songName, song.album, song.artist, song.duration);
+  // return {
+  //   id: info.lastInsertRowid,
+  //   song_name: song.songName,
+  //   album: song.album,
+  //   artist: song.artist,
+  // };
+}
+
+function removeLikedSong(id: number) {
+  console.log(id);
+  const stmt = db.prepare("DELETE FROM liked_songs WHERE id = ?");
+  const info = stmt.run(id);
+  return info.changes > 0;
+}
+
+function increaseTimesPlayed(id, times_played) {
+  const stmt = db.prepare(
+    "UPDATE liked_songs SET times_played = ? WHERE id = ?",
+  );
+  const info = stmt.run();
+  return info.changes > 0;
+}
+
+function getLikedSongs() {
+  const stmt = db.prepare("SELECT * from liked_songs ORDER BY id DESC");
+  return stmt.all();
+}
+
+function closedb() {
+  db.close();
+  console.log("db closed");
+}
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // The built directory structure
@@ -90,4 +156,8 @@ app.on("activate", () => {
   }
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  setUpDatabase();
+  setUpDBHandlers(dbHandlers);
+});

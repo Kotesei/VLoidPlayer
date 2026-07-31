@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "electron .",
+    "postinstall": "electron-builder install-app-deps",
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
@@ -12,13 +14,17 @@
   "dependencies": {
     "@radix-ui/react-slider": "^1.4.7",
     "@tailwindcss/vite": "^4.3.3",
+    "better-sqlite3": "^12.11.1",
     "lottie-web": "^5.13.0",
     "music-metadata": "^11.14.0",
+    "postinstall": "^0.11.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.2.0",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
