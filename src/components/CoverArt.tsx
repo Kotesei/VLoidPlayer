@@ -1,31 +1,35 @@
 import { useEffect, useRef, useState } from "react";
-import { animate } from "../helpers/animation";
+import { animate } from "../helpers/animate";
 import { AnimationItem } from "lottie-web";
+import { useAudio } from "../context/AudioContext";
 
-export function CoverArt({ metadata, isPlaying }: CoverArtProps) {
-  const [currentSpeed, setSpeed] = useState<number>(1);
-  const [anim, setAnim] = useState<string | null>(null);
-  const [animData, setAnimData] = useState<AnimationItem | null>(null);
+interface AnimationData {
+  src: string | null;
+  item: AnimationItem | null;
+}
+export function CoverArt() {
+  const { metadata, isPlaying } = useAudio();
   const coverArtRef = useRef(null);
+  // Will probably move this for speed control of the animation in the context in the future
+  const [currentSpeed, setSpeed] = useState<number>(1);
+  // Contains the animation data
+  const animationRef = useRef<AnimationData | null>(null);
 
   useEffect(() => {
-    if (!coverArtRef.current || !anim) return;
-    const animation = animate(coverArtRef.current, anim);
-    animation.setSpeed(currentSpeed);
-    setAnimData(animation);
-
-    return () => animation.destroy();
-  }, [anim]);
-
-  useEffect(() => {
+    if (!coverArtRef.current) return;
     // Set an animation for now (Need to change this to be more dynamic)
-    if (isPlaying && !anim) setAnim("./src/assets/test2.json");
-    console.log(isPlaying);
-    if (!animData) return;
+    if (!animationRef.current) {
+      if (!isPlaying) return;
+      const src = "./src/assets/test2.json";
+      const animation = animate(coverArtRef.current, src);
+      animationRef.current = { src, item: animation };
+    }
     if (!isPlaying) {
-      animData.setSpeed(0);
+      // Stops the animation
+      animationRef.current.item?.setSpeed(0);
     } else {
-      animData.setSpeed(currentSpeed);
+      // Plays the animation at whatever the speed set was
+      animationRef.current.item?.setSpeed(currentSpeed);
     }
   }, [isPlaying]);
 

@@ -2,9 +2,18 @@ import "./App.css";
 
 import { CoverArt } from "./components/CoverArt";
 import { SongNavi } from "./components/SongNavi";
-import { AudioProvider } from "./context/AudioContext";
+import { useAudio } from "./context/AudioContext";
 
 function App() {
+  const {
+    metadata,
+    isPlaying,
+    handleLike,
+    handleNextTrack,
+    handlePlayPause,
+    handlePreviousTrack,
+    nextSong,
+  } = useAudio();
   return (
     <>
       <div className="h-full w-full flex-col flex justify-end gap-3">
@@ -45,7 +54,7 @@ function App() {
               src="./src/assets/ellipsis-vertical.svg"
             />
           </div>
-          <CoverArt metadata={metadata} isPlaying={isPlaying} />
+          <CoverArt />
           <div className="w-full flex-1 flex flex-col pt-[5dvh]">
             <div className="flex justify-between">
               <img

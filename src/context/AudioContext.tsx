@@ -4,13 +4,12 @@ import {
   useEffect,
   useState,
   useRef,
-  RefObject,
   ReactNode,
 } from "react";
 import { getMetaData } from "../helpers/metadata";
-import { formatTime } from "../helpers/formatTime";
 
-interface SongMetaData {
+// Types
+export interface SongMetaData {
   songName?: string;
   artist?: string;
   album?: string;
@@ -18,29 +17,33 @@ interface SongMetaData {
   coverArt?: string[];
 }
 
-interface CoverArtProps {
-  metadata: SongMetaData | null;
-  isPlaying: boolean;
-  audioRef: RefObject<HTMLAudioElement | null>;
-}
-
-interface MediaItem {
+export interface MediaItem {
   src: string;
   currentDuration: string;
 }
 
 interface AudioContextType {
   isPlaying: boolean;
-  setIsPlaying: (playing: boolean) => void;
-  currentSong: MediaItem | null;
-  setCurrentSong: (song: MediaItem | null) => void;
+  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
+
+  currentSong: string | null;
+  setCurrentSong: React.Dispatch<React.SetStateAction<MediaItem | null>>;
+
   metadata: SongMetaData | null;
-  setMetadata: (data: SongMetaData | null) => void;
+  setMetadata: React.Dispatch<React.SetStateAction<MediaItem | null>>;
+
   nextSong: SongMetaData | null;
-  setNextSong: (data: SongMetaData | null) => void;
+  setNextSong: React.Dispatch<React.SetStateAction<MediaItem | null>>;
+
   audioRef: React.RefObject<HTMLAudioElement | null>;
+
+  handleLike: () => Promise<void>;
+  handlePreviousTrack: () => Promise<void>;
+  handleNextTrack: () => Promise<void>;
+  handlePlayPause: () => Promise<void>;
 }
 
+// Sample track list (Will change this for more real world usage later on)
 const sampleTrackList = [
   "sample1.flac",
   "sample2.flac",
@@ -52,10 +55,16 @@ const sampleTrackList = [
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export function AudioProvider({ children }: { children: ReactNode }) {
+  // check/set when user is playing song
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentSong, setCurrentSong] = useState<MediaItem | null>(null);
+  // currentsong is just file location of the song
+  const [currentSong, setCurrentSong] = useState<string | null>(null);
+  // holds the data such as the cover art, song, artist, album, song duration etc
   const [metadata, setMetadata] = useState<SongMetaData | null>(null);
+  // same as metadata but contains the next set of data
+  // Will probably have to make something just like this for a queue system (Skipping current and next song to avoid duplicate calls)
   const [nextSong, setNextSong] = useState<SongMetaData | null>(null);
+  // Container for the song
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Checks if there is metadata [Debugging]
@@ -63,99 +72,61 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!metadata) return;
     if (!audioRef.current) return;
     if (!currentSong) return;
-    console.log(metadata);
+    // Don't really like this might clean it a bit more later on
+    //////////////////////////////////
     const currentSongFile =
-      currentSong.src.split("/")[currentSong.src.split("/").length - 1];
+      currentSong.split("/")[currentSong.split("/").length - 1];
 
     const nextTrack =
       sampleTrackList[sampleTrackList.indexOf(currentSongFile) + 1];
     let src;
     if (!nextTrack) {
+      // For now have the list of songs loop back to the first song when out of songs in queue
       src = `./src/assets/${sampleTrackList[0]}`;
     } else {
+      // Proceed to next track
       src = `./src/assets/${nextTrack}`;
     }
+    //////////////////////////////////
 
+    //Gets the metadata for the next song once current metadata is found
     getMetaData(src, setNextSong);
-    const audio = audioRef.current;
-
-    audio.addEventListener("ended", () => {
-      setIsPlaying(false);
-      setCurrentSong((prev) => {
-        if (!prev) return null;
-        return { ...prev, currentDuration: String(metadata?.duration) };
-      });
-    });
+    // Go to next track in the queue once song ends
+    audioRef.current.addEventListener("ended", handleNextTrack);
+    return () =>
+      audioRef.current?.removeEventListener("ended", handleNextTrack);
   }, [metadata]);
 
   // Do stuff if song is playing
   useEffect(() => {
-    // Runs the function to get the metadata for a song. Args: (song_location, metadata_state)
-
     if (!isPlaying) {
+      // Pause song
       audioRef.current?.pause();
     } else if (isPlaying) {
+      // Runs the function to get the metadata for a song. Args: (song_location, metadata_state) only if there is no metadata
+      if (!metadata) getMetaData(songSrc, setMetadata);
+      // Play song
       audioRef.current?.play();
     }
   }, [isPlaying]);
 
-  useEffect(() => {
-    console.log(nextSong);
-  }, [nextSong]);
-
-  useEffect(() => {
-    if (!currentSong) return;
-    if (!metadata) getMetaData(currentSong.src, setMetadata);
-
-    const timer = setInterval(() => {
-      setCurrentSong((prev) => {
-        if (!prev) {
-          return {
-            src: "",
-            currentDuration: "-:--",
-          };
-        }
-
-        if (audioRef.current) {
-          const meterCompletion =
-            (audioRef.current.currentTime / audioRef.current.duration) * 100;
-          // if (!isSeeking) {
-          //   setSliderPos(+meterCompletion.toFixed(2));
-          // }
-        }
-
-        return {
-          ...prev,
-          currentDuration: formatTime(
-            audioRef.current ? audioRef.current.currentTime : 0,
-          ),
-        };
-      });
-    }, 25);
-
-    return () => clearInterval(timer);
-  }, [audioRef.current, isPlaying]);
-  // }, [audioRef.current, isSeeking, isPlaying]);
-
   async function handleLike() {
     if (!metadata) return;
     console.log(metadata);
+    ///////////// IndexedDB /////////////////
+    // Need to figure out how this works for web version release
+
+    ///////////// SQLite /////////////////
     // Need to handle if the song already exists in liked list
     await window.dbHandlers.likeSong(null, metadata);
   }
 
+  const songSrc = "./src/assets/sample3.flac";
+  useEffect(() => {
+    setCurrentSong(songSrc);
+  }, []);
+
   function handlePlayPause() {
-    if (!currentSong) {
-      const src = "./src/assets/sample2.flac";
-      audioRef.current = new Audio(src);
-      const song = {
-        src,
-        audio: audioRef.current,
-        currentDuration: "0:00",
-      };
-      setCurrentSong(song);
-      audioRef.current.play();
-    }
     setIsPlaying(!isPlaying);
   }
 
@@ -163,30 +134,17 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!audioRef.current) return;
     if (audioRef.current.currentTime > 2) {
       audioRef.current.currentTime = 0;
-      setCurrentSong((prev) => {
-        if (!prev) return null;
-        return { ...prev, currentDuration: "0:00" };
-      });
-
-      // setSliderPos(0);
     } else {
       if (!currentSong) return;
       const currentSongFile =
-        currentSong.src.split("/")[currentSong.src.split("/").length - 1];
+        currentSong.split("/")[currentSong.split("/").length - 1];
       const prevTrack =
         sampleTrackList[sampleTrackList.indexOf(currentSongFile) - 1];
       if (prevTrack) {
         audioRef.current.src = "";
         const src = `./src/assets/${prevTrack}`;
-        audioRef.current = new Audio(src);
-        const song = {
-          src,
-          audio: audioRef.current,
-          currentDuration: "0:00",
-        };
         getMetaData(src, setMetadata);
-        setCurrentSong(song);
-        audioRef.current.play();
+        setCurrentSong(src);
         setIsPlaying(true);
       } else {
         audioRef.current.currentTime = 0;
@@ -198,8 +156,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!currentSong) return;
     if (!audioRef.current) return;
     const currentSongFile =
-      currentSong.src.split("/")[currentSong.src.split("/").length - 1];
-    audioRef.current.src = "";
+      currentSong.split("/")[currentSong.split("/").length - 1];
     let src;
     const nextTrack =
       sampleTrackList[sampleTrackList.indexOf(currentSongFile) + 1];
@@ -209,29 +166,10 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       src = `./src/assets/${nextTrack}`;
     }
     // audioRef.current = new Audio(src);
-    const song = {
-      src,
-      audio: audioRef.current,
-      currentDuration: "0:00",
-    };
     getMetaData(src, setMetadata);
-    setCurrentSong(song);
-    // audioRef.current.play();
+    setCurrentSong(src);
     setIsPlaying(true);
   }
-
-  // useEffect(() => {
-  //   if (isSeeking) return;
-  //   if (!sliderRef.current) return;
-  //   if (!audioRef.current) return;
-  //   const sliderThumb = sliderRef.current.querySelector('[role="slider"]');
-
-  //   if (sliderThumb) {
-  //     const value = sliderThumb.getAttribute("aria-valuenow");
-  //     const meterCompletion = (Number(value) / 100) * audioRef.current.duration;
-  //     audioRef.current.currentTime = +meterCompletion;
-  //   }
-  // }, [isSeeking]);
 
   return (
     <AudioContext.Provider
@@ -254,7 +192,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       }
     >
       {children}
-      <audio ref={audioRef} src={currentSong?.src || undefined} />
+      <audio ref={audioRef} src={currentSong || undefined} />
     </AudioContext.Provider>
   );
 }
