@@ -35,6 +35,9 @@ interface AudioContextType {
   nextSong: SongMetaData | null;
   setNextSong: React.Dispatch<React.SetStateAction<MediaItem | null>>;
 
+  isReset: boolean;
+  setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
+
   audioRef: React.RefObject<HTMLAudioElement | null>;
 
   handleLike: () => Promise<void>;
@@ -64,6 +67,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   // same as metadata but contains the next set of data
   // Will probably have to make something just like this for a queue system (Skipping current and next song to avoid duplicate calls)
   const [nextSong, setNextSong] = useState<SongMetaData | null>(null);
+
+  const [isReset, setIsReset] = useState<boolean>(false);
   // Container for the song
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -134,6 +139,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!audioRef.current) return;
     if (audioRef.current.currentTime > 2) {
       audioRef.current.currentTime = 0;
+      setIsReset(true);
     } else {
       if (!currentSong) return;
       const currentSongFile =
@@ -143,11 +149,15 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       if (prevTrack) {
         audioRef.current.src = "";
         const src = `./src/assets/${prevTrack}`;
+        setIsReset(false);
         getMetaData(src, setMetadata);
         setCurrentSong(src);
-        setIsPlaying(true);
+        if (!isPlaying) setIsPlaying(true);
       } else {
+        // This is when trying to go to previous track on the start of a list
         audioRef.current.currentTime = 0;
+        audioRef.current.play();
+        setIsPlaying(true);
       }
     }
   }
@@ -188,6 +198,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           handlePlayPause,
           handlePreviousTrack,
           handleLike,
+          isReset,
+          setIsReset,
         } as AudioContextType
       }
     >

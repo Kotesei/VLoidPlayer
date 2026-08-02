@@ -9,7 +9,7 @@ interface SongTime {
 }
 
 export function SongNavi() {
-  const { audioRef, isPlaying } = useAudio();
+  const { audioRef, isPlaying, isReset, setIsReset } = useAudio();
   const sliderRef = useRef<HTMLSpanElement>(null);
   const [sliderPos, setSliderPos] = useState<number>(0);
   const [isSeeking, setIsSeeking] = useState<boolean>(false);
@@ -31,6 +31,11 @@ export function SongNavi() {
       const value = sliderThumb.getAttribute("aria-valuenow");
       const meterCompletion = (Number(value) / 100) * audioRef.current.duration;
       audioRef.current.currentTime = +meterCompletion;
+      const currentTime = formatTime(audioRef.current.currentTime);
+      setSongTime((prev) => {
+        if (!prev) return prev;
+        return { ...prev, currentTime };
+      });
     }
   }, [isSeeking]);
 
@@ -54,29 +59,46 @@ export function SongNavi() {
       }
     }, 25);
 
-    function handleSongData(e: any) {
-      if (!audioRef.current) return;
-      let currentTime;
-      let duration;
-      if (!e) {
-        currentTime = formatTime(audioRef.current?.currentTime);
-        duration = formatTime(audioRef.current?.duration);
-      } else {
-        currentTime = formatTime(e.target.currentTime);
-        duration = formatTime(e.target.duration);
-      }
-      audioRef.current?.play();
-      setSongTime({
-        currentTime,
-        duration,
-      });
-    }
-
     return () => {
       clearInterval(updateTime);
       audioRef.current?.removeEventListener("loadedmetadata", handleSongData);
     };
   }, [isPlaying, isSeeking]);
+
+  function handleResetSong() {
+    setSliderPos(0);
+    setIsReset(false);
+
+    setSongTime((prev) => {
+      if (!prev) return prev;
+      return { ...prev, currentTime: "0:00" };
+    });
+  }
+
+  useEffect(() => {
+    if (!isReset) return;
+    audioRef.current?.addEventListener("timeupdate", handleResetSong);
+    return () =>
+      audioRef.current?.removeEventListener("timeupdate", handleResetSong);
+  }, [isReset]);
+
+  function handleSongData(e: any) {
+    if (!audioRef.current) return;
+    let currentTime;
+    let duration;
+    if (!e) {
+      currentTime = formatTime(audioRef.current?.currentTime);
+      duration = formatTime(audioRef.current?.duration);
+    } else {
+      currentTime = formatTime(e.target.currentTime);
+      duration = formatTime(e.target.duration);
+    }
+    audioRef.current?.play();
+    setSongTime({
+      currentTime,
+      duration,
+    });
+  }
 
   return (
     <div className="w-full h-5 mt-5">
