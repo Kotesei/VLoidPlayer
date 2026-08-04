@@ -34,11 +34,26 @@ export function CoverArt() {
   }, [isPlaying]);
 
   return (
-    <div
-      ref={coverArtRef}
-      style={{ backgroundImage: `url(${metadata?.coverArt})` }}
-      className="border-purple-300 border-2 min-w-50 min-h-50 aspect-square h-[65dvw] bg-[url] bg-cover"
-      id="coverArt"
-    ></div>
+    <>
+      <div className="flex w-full justify-between h-3.5 items-center mb-2">
+        <img
+          draggable="false"
+          className="h-full invert-100"
+          src="./src/assets/arrow-outline.svg"
+        />
+
+        <img
+          draggable="false"
+          className="h-full invert-100"
+          src="./src/assets/ellipsis-vertical.svg"
+        />
+      </div>
+      <div
+        ref={coverArtRef}
+        style={{ backgroundImage: `url(${metadata?.coverArt})` }}
+        className="border-purple-300 border-2 min-w-50 min-h-50 aspect-square h-[65dvw] bg-[url] bg-cover pointer-events-none"
+        id="coverArt"
+      ></div>
+    </>
   );
 }

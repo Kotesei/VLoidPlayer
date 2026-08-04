@@ -34,3 +34,5 @@
 - Music should be prerendered for web example, probably gonna have a loader before the app loads since this app is not intended for use with internet (I might or might not look into server sided things but I really want this to be a standalone music player)
 
 - Thinking of adding a cool visual animation for when importing songs, will most likely add it after most the app is functional (Need to ensure app runs decent at least on web before considering it but I'll apply it on the actual app)
+
+- Need to consider the possibility of no metadata + different audio formats
