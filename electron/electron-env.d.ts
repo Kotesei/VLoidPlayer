@@ -15,13 +15,28 @@ declare namespace NodeJS {
      * │
      * ```
      */
-    APP_ROOT: string
+    APP_ROOT: string;
     /** /dist/ or /public/ */
-    VITE_PUBLIC: string
+    VITE_PUBLIC: string;
   }
 }
 
 // Used in Renderer process, expose in `preload.ts`
 interface Window {
-  ipcRenderer: import('electron').IpcRenderer
+  ipcRenderer: import("electron").IpcRenderer;
+  handlers;
+  dbHandlers;
 }
+
+// interface SongMetaData {
+//   songName?: string;
+//   artist?: string;
+//   album?: string;
+//   duration?: number;
+//   coverArt?: string[];
+// }
+
+// interface MediaItem {
+//   src: string;
+//   currentDuration: string;
+// }

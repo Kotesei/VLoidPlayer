@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+#root {
+  width: 100dvw;
+  height: 100dvh;
+  background-color: rgb(16, 0, 90);
+  overflow: hidden;
+  user-select: none;
+}
