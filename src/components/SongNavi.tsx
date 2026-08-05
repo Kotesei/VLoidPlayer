@@ -9,14 +9,14 @@ interface SongTime {
 }
 
 export function SongNavi() {
-  const { audioRef, isPlaying, isReset, setIsReset } = useAudio();
+  const { audio, isPlaying, isReset, setIsReset } = useAudio();
   const sliderRef = useRef<HTMLSpanElement>(null);
   const [sliderPos, setSliderPos] = useState<number>(0);
   const [isSeeking, setIsSeeking] = useState<boolean>(false);
   const [songTime, setSongTime] = useState<SongTime | null>(null);
 
   function handleSeek(e: number[]) {
-    if (!audioRef.current) return;
+    if (!audio) return;
     setIsSeeking(true);
     setSliderPos(e[0]);
   }
@@ -24,14 +24,14 @@ export function SongNavi() {
   useEffect(() => {
     if (isSeeking) return;
     if (!sliderRef.current) return;
-    if (!audioRef.current?.src) return;
+    if (!audio?.src) return;
     const sliderThumb = sliderRef.current.querySelector('[role="slider"]');
 
     if (sliderThumb) {
       const value = sliderThumb.getAttribute("aria-valuenow");
-      const meterCompletion = (Number(value) / 100) * audioRef.current.duration;
-      audioRef.current.currentTime = +meterCompletion;
-      const currentTime = formatTime(audioRef.current.currentTime);
+      const meterCompletion = (Number(value) / 100) * audio.duration;
+      audio.currentTime = +meterCompletion;
+      const currentTime = formatTime(audio.currentTime);
       setSongTime((prev) => {
         if (!prev) return prev;
         return { ...prev, currentTime };
@@ -43,15 +43,14 @@ export function SongNavi() {
   useEffect(() => {
     if (!isPlaying) return;
     if (!songTime) handleSongData(null);
-    audioRef.current?.addEventListener("loadedmetadata", handleSongData);
+    audio?.addEventListener("loadedmetadata", handleSongData);
 
     const updateTime = setInterval(() => {
-      if (!audioRef.current) return;
-      const meterCompletion =
-        (audioRef.current.currentTime / audioRef.current.duration) * 100;
+      if (!audio) return;
+      const meterCompletion = (audio.currentTime / audio.duration) * 100;
       if (!isSeeking) {
         setSliderPos(+meterCompletion.toFixed(2));
-        const currentTime = formatTime(audioRef.current?.currentTime);
+        const currentTime = formatTime(audio?.currentTime);
         setSongTime((prev) => {
           if (!prev) return prev;
           return { ...prev, currentTime };
@@ -61,7 +60,7 @@ export function SongNavi() {
 
     return () => {
       clearInterval(updateTime);
-      audioRef.current?.removeEventListener("loadedmetadata", handleSongData);
+      audio?.removeEventListener("loadedmetadata", handleSongData);
     };
   }, [isPlaying, isSeeking]);
 
@@ -77,23 +76,22 @@ export function SongNavi() {
 
   useEffect(() => {
     if (!isReset) return;
-    audioRef.current?.addEventListener("timeupdate", handleResetSong);
-    return () =>
-      audioRef.current?.removeEventListener("timeupdate", handleResetSong);
+    audio?.addEventListener("timeupdate", handleResetSong);
+    return () => audio?.removeEventListener("timeupdate", handleResetSong);
   }, [isReset]);
 
   function handleSongData(e: any) {
-    if (!audioRef.current) return;
+    if (!audio) return;
     let currentTime;
     let duration;
     if (!e) {
-      currentTime = formatTime(audioRef.current?.currentTime);
-      duration = formatTime(audioRef.current?.duration);
+      currentTime = formatTime(audio?.currentTime);
+      duration = formatTime(audio?.duration);
     } else {
       currentTime = formatTime(e.target.currentTime);
       duration = formatTime(e.target.duration);
     }
-    audioRef.current?.play();
+    audio?.play();
     setSongTime({
       currentTime,
       duration,

@@ -8,6 +8,7 @@ import {
   useCallback,
 } from "react";
 import { getMetaData } from "../helpers/metadata";
+import { handleNextTrack } from "../helpers/audio/next";
 
 // Types
 export interface SongMetaData {
@@ -28,10 +29,10 @@ interface AudioContextType {
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
 
   currentSong: string | null;
-  setCurrentSong: React.Dispatch<React.SetStateAction<MediaItem | null>>;
+  setCurrentSong: React.Dispatch<React.SetStateAction<string | null>>;
 
   metadata: SongMetaData | null;
-  setMetadata: React.Dispatch<React.SetStateAction<MediaItem | null>>;
+  setMetadata: React.Dispatch<React.SetStateAction<SongMetaData | null>>;
 
   nextSong: SongMetaData | null;
   setNextSong: React.Dispatch<React.SetStateAction<MediaItem | null>>;
@@ -39,14 +40,14 @@ interface AudioContextType {
   isReset: boolean;
   setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
 
-  audioRef: React.RefObject<HTMLAudioElement | null>;
-  loopState: string;
+  audio: HTMLAudioElement | null;
 
-  handleLike: () => Promise<void>;
-  handlePreviousTrack: () => Promise<void>;
-  handleNextTrack: () => Promise<void>;
-  handlePlayPause: () => Promise<void>;
-  handleLoop: () => Promise<void>;
+  loopState: string;
+  setLoopState: React.Dispatch<React.SetStateAction<string>>;
+
+  onEnded: (e: Event) => void;
+
+  trackList: string[];
 }
 
 // Sample track list (Will change this for more real world usage later on)
@@ -61,6 +62,8 @@ const sampleTrackList = [
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export function AudioProvider({ children }: { children: ReactNode }) {
+  // Contains the tracklist
+  const [trackList, setTrackList] = useState<string[]>(sampleTrackList);
   // check/set when user is playing song
   const [isPlaying, setIsPlaying] = useState(false);
   // currentsong is just file location of the song
@@ -70,181 +73,112 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   // same as metadata but contains the next set of data
   // Will probably have to make something just like this for a queue system (Skipping current and next song to avoid duplicate calls)
   const [nextSong, setNextSong] = useState<SongMetaData | null>(null);
-
   // Checks if song has been reset
   const [isReset, setIsReset] = useState<boolean>(false);
-  // Container for the song
-
+  // Loop state to handle repeat once or repeat list or repeat none
   const [loopState, setLoopState] = useState("disabled");
+  // Audio container
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audio = audioRef.current;
+
+  // Used to memorize the function in order to change the listener when switching between loop modes or when metadata changes
   const onEnded = useCallback(
-    (e: any) => handleNextTrack(e, true),
+    (e: Event) =>
+      handleNextTrack(e, true, {
+        metadata,
+        currentSong,
+        audio,
+        loopState,
+        trackList,
+        setIsPlaying,
+        setIsReset,
+        setMetadata,
+        setCurrentSong,
+      }),
     [loopState, metadata],
   );
 
+  // Runs after song ends
   useEffect(() => {
-    if (!audioRef.current) return;
-
-    audioRef.current.addEventListener("ended", onEnded);
-
-    return () => audioRef.current?.removeEventListener("ended", onEnded);
+    if (!audio) return;
+    audio.addEventListener("ended", onEnded);
+    return () => audio.removeEventListener("ended", onEnded);
   }, [onEnded]);
+
   // Checks if there is metadata [Debugging]
   useEffect(() => {
     if (!metadata) return;
-    if (!audioRef.current) return;
+    if (!audio) return;
     if (!currentSong) return;
+
     // Don't really like this might clean it a bit more later on
     //////////////////////////////////
+    // Set the current song name.
+
     const currentSongFile =
       currentSong.split("/")[currentSong.split("/").length - 1];
-
-    const nextTrack =
-      sampleTrackList[sampleTrackList.indexOf(currentSongFile) + 1];
+    // Set the next song file name.
+    const nextTrack = trackList[trackList.indexOf(currentSongFile) + 1];
     let src;
+
+    // Checks if there is another track afterwards, if not then it will just set the next track to be the first song in the list.
     if (!nextTrack) {
-      src = `./src/assets/${sampleTrackList[0]}`;
-      // For now have the list of songs loop back to the first song when out of songs in queue
+      src = `./src/assets/${trackList[0]}`;
+
       if (loopState === "list") {
+        // If the loop mode is set to "list", it will update the Queue to show the first song of a list be the next song.
         getMetaData(src, setNextSong);
       } else {
+        // If not list mode then there will be no next song in the Queue.
         setNextSong(null);
       }
+      // Else if not the last track on the list.
     } else {
-      // Proceed to next track
       src = `./src/assets/${nextTrack}`;
     }
     //////////////////////////////////
-
-    //Gets the metadata for the next song once current metadata is found
+    //Gets the metadata for the next song (ONLY if there is a next song!!) once current metadata is found.
     if (nextTrack) getMetaData(src, setNextSong);
+
     // Go to next track in the queue once song ends
-
-    audioRef.current.addEventListener("ended", onEnded);
-    return () => audioRef.current?.removeEventListener("ended", onEnded);
+    audio.addEventListener("ended", onEnded);
+    return () => audio.removeEventListener("ended", onEnded);
   }, [metadata]);
-
-  function handleEnd() {
-    setIsPlaying(false);
-    if (!audioRef.current) return;
-    audioRef.current.currentTime = 0;
-    setIsReset(true);
-    return;
-  }
-
-  function handleNextTrack(e: any, ended: boolean = false) {
-    if (!metadata) return;
-    if (!currentSong) return;
-    if (!audioRef.current) return;
-    if (ended && loopState === "single") {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play();
-      return;
-    }
-    if (
-      audioRef.current.currentTime === audioRef.current.duration &&
-      loopState === "single"
-    ) {
-      audioRef.current.currentTime = 0;
-      return;
-    }
-    const currentSongFile =
-      currentSong.split("/")[currentSong.split("/").length - 1];
-    let src;
-    const nextTrack =
-      sampleTrackList[sampleTrackList.indexOf(currentSongFile) + 1];
-    if (!nextTrack) {
-      // If Disabled
-      if (loopState === "list") {
-        src = `./src/assets/${sampleTrackList[0]}`;
-      } else {
-        handleEnd();
-        return;
-      }
-      // If looping list
-    } else {
-      src = `./src/assets/${nextTrack}`;
-    }
-    // audioRef.current = new Audio(src);
-    getMetaData(src, setMetadata);
-    setCurrentSong(src);
-    setIsPlaying(true);
-  }
 
   // Do stuff if song is playing
   useEffect(() => {
     if (!isPlaying) {
       // Pause song
-      audioRef.current?.pause();
+      audio?.pause();
     } else if (isPlaying) {
       // Runs the function to get the metadata for a song. Args: (song_location, metadata_state) only if there is no metadata
       if (!metadata) getMetaData(songSrc, setMetadata);
       // Play song
-      audioRef.current?.play();
+      audio?.play();
     }
   }, [isPlaying]);
 
-  async function handleLike() {
-    if (!metadata) return;
-    console.log(metadata);
-    ///////////// IndexedDB /////////////////
-    // Need to figure out how this works for web version release
-
-    ///////////// SQLite /////////////////
-    // Need to handle if the song already exists in liked list
-    await window.dbHandlers.likeSong(null, metadata);
-  }
-
+  ///////////////////////////
+  // Starting State (This is mostly for debugging) //
   const songSrc = "./src/assets/sample3.flac";
   useEffect(() => {
     setCurrentSong(songSrc);
   }, []);
+  ///////////////////////////
 
-  function handlePlayPause() {
-    setIsPlaying(!isPlaying);
-  }
-
-  function handlePreviousTrack() {
-    if (!metadata) return;
-    if (!audioRef.current) return;
-    if (audioRef.current.currentTime > 2) {
-      audioRef.current.currentTime = 0;
-      setIsReset(true);
-    } else {
-      if (!currentSong) return;
-      const currentSongFile =
-        currentSong.split("/")[currentSong.split("/").length - 1];
-      const prevTrack =
-        sampleTrackList[sampleTrackList.indexOf(currentSongFile) - 1];
-      if (prevTrack) {
-        audioRef.current.src = "";
-        const src = `./src/assets/${prevTrack}`;
-        setIsReset(false);
-        getMetaData(src, setMetadata);
-        setCurrentSong(src);
-        if (!isPlaying) setIsPlaying(true);
-      } else {
-        // This is when trying to go to previous track on the start of a list
-        audioRef.current.currentTime = 0;
-        audioRef.current.play();
-        setIsPlaying(true);
-      }
-    }
-  }
-
+  // This is for any loop state changes
   useEffect(() => {
     if (!metadata) return;
-    audioRef.current?.removeEventListener("ended", onEnded);
+    audio?.removeEventListener("ended", onEnded);
     const currentSongFile =
       currentSong?.split("/")[currentSong.split("/").length - 1];
     if (!currentSongFile) return;
-    const nextTrack =
-      sampleTrackList[sampleTrackList.indexOf(currentSongFile) + 1];
+    const nextTrack = trackList[trackList.indexOf(currentSongFile) + 1];
     switch (loopState) {
       // Loop List
       case "list":
         if (!nextTrack) {
-          const src = `./src/assets/${sampleTrackList[0]}`;
+          const src = `./src/assets/${trackList[0]}`;
           getMetaData(src, setNextSong);
         }
         break;
@@ -261,25 +195,9 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         }
         break;
     }
-    audioRef.current?.addEventListener("ended", onEnded);
-    return () => audioRef.current?.removeEventListener("ended", onEnded);
+    audio?.addEventListener("ended", onEnded);
+    return () => audio?.removeEventListener("ended", onEnded);
   }, [loopState]);
-
-  // Cycle through the loop options
-  function handleLoop() {
-    if (!metadata) return;
-    audioRef.current?.removeEventListener("ended", onEnded);
-    setLoopState((state) => {
-      switch (state) {
-        case "list":
-          return "single";
-        case "single":
-          return "disabled";
-        default:
-          return "list";
-      }
-    });
-  }
 
   return (
     <AudioContext.Provider
@@ -293,15 +211,13 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           setMetadata,
           nextSong,
           setNextSong,
-          audioRef,
-          handleNextTrack,
-          handlePlayPause,
-          handlePreviousTrack,
-          handleLike,
+          audio,
           isReset,
           setIsReset,
-          handleLoop,
           loopState,
+          setLoopState,
+          trackList,
+          onEnded,
         } as AudioContextType
       }
     >
