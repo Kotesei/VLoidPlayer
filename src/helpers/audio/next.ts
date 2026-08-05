@@ -1,6 +1,6 @@
 import { handleEnd } from "./ended";
 import { getMetaData } from "../metadata";
-import { SongMetaData } from "../../context/AudioContext";
+import { ShuffledTracks, SongMetaData } from "../../context/AudioContext";
 
 interface Next {
   metadata: SongMetaData | null;
@@ -12,6 +12,7 @@ interface Next {
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   setMetadata: React.Dispatch<React.SetStateAction<SongMetaData | null>>;
   setCurrentSong: React.Dispatch<React.SetStateAction<string | null>>;
+  isShuffling: ShuffledTracks | false;
 }
 export async function handleNextTrack(
   _e: any,
@@ -26,6 +27,7 @@ export async function handleNextTrack(
     setIsReset,
     setMetadata,
     setCurrentSong,
+    isShuffling,
   }: Next,
 ) {
   if (!metadata) return;
@@ -42,21 +44,27 @@ export async function handleNextTrack(
   }
   const currentSongFile =
     currentSong.split("/")[currentSong.split("/").length - 1];
+  const nextTrack = isShuffling
+    ? isShuffling.shuffledTrackList[
+        isShuffling.shuffledTrackList.indexOf(currentSongFile) + 1
+      ]
+    : trackList[trackList.indexOf(currentSongFile) + 1];
+
   let src;
-  const nextTrack = trackList[trackList.indexOf(currentSongFile) + 1];
+
   if (!nextTrack) {
-    // If Disabled
-    if (loopState === "list") {
-      src = `./src/assets/${trackList[0]}`;
-    } else {
+    // If not in loop list mode
+    if (loopState !== "list") {
       handleEnd({ setIsPlaying, audio, setIsReset });
       return;
+    } else {
+      src = isShuffling
+        ? `./src/assets/${isShuffling.shuffledTrackList[0]}`
+        : `./src/assets/${trackList[0]}`;
     }
-    // If looping list
   } else {
     src = `./src/assets/${nextTrack}`;
   }
-  // audio = new Audio(src);
   getMetaData(src, setMetadata);
   setCurrentSong(src);
   setIsPlaying(true);

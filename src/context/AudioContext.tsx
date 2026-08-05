@@ -48,6 +48,14 @@ interface AudioContextType {
   onEnded: (e: Event) => void;
 
   trackList: string[];
+
+  isShuffling: ShuffledTracks;
+  setIsShuffling: React.Dispatch<React.SetStateAction<ShuffledTracks | false>>;
+}
+
+export interface ShuffledTracks {
+  trackList: string[];
+  shuffledTrackList: string[];
 }
 
 // Sample track list (Will change this for more real world usage later on)
@@ -64,6 +72,7 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined);
 export function AudioProvider({ children }: { children: ReactNode }) {
   // Contains the tracklist
   const [trackList, setTrackList] = useState<string[]>(sampleTrackList);
+  const [isShuffling, setIsShuffling] = useState<ShuffledTracks | false>(false);
   // check/set when user is playing song
   const [isPlaying, setIsPlaying] = useState(false);
   // currentsong is just file location of the song
@@ -94,6 +103,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         setIsReset,
         setMetadata,
         setCurrentSong,
+        isShuffling,
       }),
     [loopState, metadata],
   );
@@ -118,12 +128,18 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const currentSongFile =
       currentSong.split("/")[currentSong.split("/").length - 1];
     // Set the next song file name.
-    const nextTrack = trackList[trackList.indexOf(currentSongFile) + 1];
+    const nextTrack = isShuffling
+      ? isShuffling.shuffledTrackList[
+          isShuffling.shuffledTrackList.indexOf(currentSongFile) + 1
+        ]
+      : trackList[trackList.indexOf(currentSongFile) + 1];
     let src;
 
     // Checks if there is another track afterwards, if not then it will just set the next track to be the first song in the list.
     if (!nextTrack) {
-      src = `./src/assets/${trackList[0]}`;
+      src = isShuffling
+        ? `./src/assets/${isShuffling.shuffledTrackList[0]}`
+        : `./src/assets/${trackList[0]}`;
 
       if (loopState === "list") {
         // If the loop mode is set to "list", it will update the Queue to show the first song of a list be the next song.
@@ -143,7 +159,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     // Go to next track in the queue once song ends
     audio.addEventListener("ended", onEnded);
     return () => audio.removeEventListener("ended", onEnded);
-  }, [metadata]);
+  }, [metadata, isShuffling]);
 
   // Do stuff if song is playing
   useEffect(() => {
@@ -173,12 +189,18 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     const currentSongFile =
       currentSong?.split("/")[currentSong.split("/").length - 1];
     if (!currentSongFile) return;
-    const nextTrack = trackList[trackList.indexOf(currentSongFile) + 1];
+    const nextTrack = isShuffling
+      ? isShuffling.shuffledTrackList[
+          isShuffling.shuffledTrackList.indexOf(currentSongFile) + 1
+        ]
+      : trackList[trackList.indexOf(currentSongFile) + 1];
     switch (loopState) {
       // Loop List
       case "list":
         if (!nextTrack) {
-          const src = `./src/assets/${trackList[0]}`;
+          const src = isShuffling
+            ? `./src/assets/${isShuffling.shuffledTrackList[0]}`
+            : `./src/assets/${trackList[0]}`;
           getMetaData(src, setNextSong);
         }
         break;
@@ -218,6 +240,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           setLoopState,
           trackList,
           onEnded,
+          isShuffling,
+          setIsShuffling,
         } as AudioContextType
       }
     >

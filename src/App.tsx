@@ -9,6 +9,7 @@ import { handleLoop } from "./helpers/audio/loop";
 import { handleNextTrack } from "./helpers/audio/next";
 import { handlePlayPause } from "./helpers/audio/play_pause";
 import { handlePreviousTrack } from "./helpers/audio/previous";
+import { handleShuffle } from "./helpers/audio/shuffle";
 import { handleLike } from "./helpers/db/likeSong";
 
 function App() {
@@ -25,6 +26,8 @@ function App() {
     setCurrentSong,
     onEnded,
     setLoopState,
+    isShuffling,
+    setIsShuffling,
   } = useAudio();
 
   return (
@@ -38,7 +41,18 @@ function App() {
           <CoverArt />
           <div className="w-full flex-1 flex flex-col pt-[5dvh]">
             <div className="flex justify-between">
-              <Button shuffle stroke="oklch(82.7% 0.119 306.383)" />
+              <Button
+                shuffle
+                stroke="oklch(82.7% 0.119 306.383)"
+                onClick={() =>
+                  handleShuffle({
+                    currentSong,
+                    trackList,
+                    isShuffling,
+                    setIsShuffling,
+                  })
+                }
+              />
               <Button
                 like
                 onClick={() => handleLike(metadata)}
@@ -91,6 +105,7 @@ function App() {
                     setIsReset,
                     setMetadata,
                     setCurrentSong,
+                    isShuffling,
                   })
                 }
               />

@@ -23,14 +23,15 @@ export function Button({
   onClick?: () => Promise<void>;
   isPlaying?: boolean;
 }) {
-  const { loopState } = useAudio();
+  const { loopState, isShuffling } = useAudio();
   return (
     <>
       {shuffle && (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 512 512"
-          className="ionicon w-[clamp(1.5rem,4vmin,2.5rem)]"
+          className={`ionicon w-[clamp(1.5rem,4vmin,2.5rem)]  ${!isShuffling ? "" : "drop-shadow-[0_0_2px_#fff]"}`}
+          onClick={onClick}
         >
           <path
             d="m400 304 48 48-48 48M400 112l48 48-48 48M64 352h85.19a80 80 0 0 0 66.56-35.62L256 256"
