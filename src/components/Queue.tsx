@@ -1,13 +1,19 @@
+import { useEffect, useState } from "react";
 import { useAudio } from "../context/AudioContext";
 
 export function Queue() {
-  const { metadata, nextSong } = useAudio();
+  const [loaded, setLoaded] = useState(false);
+  const { nextSong, trackList, isPlaying } = useAudio();
+  useEffect(() => {
+    if (!nextSong) return;
+    setLoaded(true);
+  }, [nextSong]);
   return (
     <div
       className="h-[20dvh] w-full items-center gap-2 flex flex-col justify-end"
       style={{
-        opacity: metadata ? 1 : 0,
-        visibility: metadata ? "visible" : "hidden",
+        opacity: loaded ? 1 : 0,
+        visibility: loaded ? "visible" : "hidden",
       }}
       id="queue"
     >
@@ -28,7 +34,10 @@ export function Queue() {
               <p>{nextSong?.songName ?? "None"}</p>
             </>
           )}
-          {!nextSong && <p className="text-center">End Of List</p>}
+          {!trackList && (
+            <p className="text-center">Nothing has been added to the Queue</p>
+          )}
+          {trackList && !nextSong && <p className="text-center">End Of List</p>}
         </div>
         <img
           draggable="false"

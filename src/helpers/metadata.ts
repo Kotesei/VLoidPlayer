@@ -16,11 +16,8 @@ export async function getMetaData(song: string, setState: any) {
     duration: formatTime(metadata.format.duration ?? 0),
   };
 
-  console.log(songMetaData);
-
   // // Handle the artwork
   function createBlob(item: any) {
-    console.log(item);
     const blob = new Blob([item.data], { type: item.format });
     const url = URL.createObjectURL(blob);
     return url;

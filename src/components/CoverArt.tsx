@@ -20,20 +20,28 @@ export function CoverArt() {
     // Set an animation for now (Need to change this to be more dynamic)
     if (!animationRef.current) {
       if (!isPlaying) return;
-      const src = "./src/assets/test2.json";
-      const animation = animate(coverArtRef.current, src);
-      animationRef.current = { src, item: animation };
     }
     if (!isPlaying) {
       // Stops the animation
-      animationRef.current.item?.setSpeed(0);
+      animationRef.current?.item?.setSpeed(0);
     } else {
       // Plays the animation at whatever the speed set was
-      animationRef.current.item?.setSpeed(currentSpeed);
+      animationRef.current?.item?.setSpeed(currentSpeed);
     }
   }, [isPlaying]);
 
-  console.log(metadata);
+  useEffect(() => {
+    if (!coverArtRef.current) return;
+    const src = "./src/assets/test2.json";
+    const animation = animate(coverArtRef.current, src);
+    animationRef.current = { src, item: animation };
+    animationRef.current.item?.hide();
+    return () => animation.destroy();
+  }, []);
+
+  useEffect(() => {
+    if (metadata) animationRef.current?.item?.show();
+  }, [metadata]);
 
   return (
     <>
