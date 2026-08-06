@@ -17,6 +17,7 @@ export interface SongMetaData {
   album?: string;
   duration?: number;
   coverArt?: string[];
+  coverArtURL?: string | null;
 }
 
 export interface MediaItem {
