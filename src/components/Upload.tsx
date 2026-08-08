@@ -1,47 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useFiles } from "../context/FileContext";
 
 // Starting point for new visitors (Web Version)
 export function Upload() {
-  const drag_drop_zone = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<File[] | null>(null);
-  useEffect(() => {
-    const el = drag_drop_zone.current;
-    if (!el) return;
-
-    const dragOver = (e: Event) => {
-      e.preventDefault();
-      drag_drop_zone.current?.classList.add("dragging_over");
-    };
-
-    const dragLeave = (e: Event) => {
-      e.preventDefault();
-      drag_drop_zone.current?.classList.remove("dragging_over");
-    };
-
-    const dropFiles = (e: DragEvent) => {
-      e.preventDefault();
-      const transferedFiles = e.dataTransfer?.files;
-      setFiles(Array.from(transferedFiles || []));
-    };
-
-    el.addEventListener("dragover", dragOver);
-    el.addEventListener("dragleave", dragLeave);
-    el.addEventListener("drop", dropFiles);
-
-    return () => {
-      el.removeEventListener("dragover", dragOver);
-      el.removeEventListener("dragleave", dragLeave);
-      el.removeEventListener("drop", dropFiles);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!files) return;
-    files.map((file) => {
-      console.log(file);
-    });
-    drag_drop_zone.current?.classList.add("dropped_files");
-  }, [files]);
+  const { files, drag_drop_zone, handleLoadRandomSamples } = useFiles();
 
   return (
     <div className="flex justify-center items-center w-full h-full">
@@ -71,7 +32,10 @@ export function Upload() {
               <button className="bg-white px-20 py-2 rounded-full text-2xl">
                 Upload
               </button>
-              <button className="bg-white px-20 py-2 rounded-full text-2xl">
+              <button
+                onClick={handleLoadRandomSamples}
+                className="bg-white px-20 py-2 rounded-full text-2xl"
+              >
                 Use Samples
               </button>
             </div>

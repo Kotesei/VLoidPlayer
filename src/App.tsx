@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./App.css";
 import { Button } from "./components/Button";
 import { CoverArt } from "./components/CoverArt";
@@ -13,9 +12,9 @@ import { handlePreviousTrack } from "./helpers/audio/previous";
 import { handleShuffle } from "./helpers/audio/shuffle";
 import { handleLike } from "./helpers/db/likeSong";
 import { Upload } from "./components/Upload";
+import { useFiles } from "./context/FileContext";
 
 function App() {
-  const [uploadState, setUploadState] = useState(false);
   const {
     isPlaying,
     metadata,
@@ -32,6 +31,7 @@ function App() {
     isShuffling,
     setIsShuffling,
   } = useAudio();
+  const { uploadState } = useFiles();
 
   return (
     <>
@@ -40,7 +40,7 @@ function App() {
         <div className="h-full w-full flex-col flex items-center justify-end gap-3">
           <SongDetails />
           <div
-            className="max-h-[62dvh] flex flex-col items-center px-13 w-[clamp(5.5rem,85vmin,55.5rem)] min-w-76 max-w-225"
+            className="max-h-[62dvh] flex flex-col items-center px-13 w-[clamp(5.5rem,85vmin,55.5rem)] min-w-76 max-w-225 flex-1"
             id="songContainer"
           >
             <CoverArt />
@@ -86,6 +86,7 @@ function App() {
                       setCurrentSong,
                       isPlaying,
                       setIsPlaying,
+                      isShuffling,
                     })
                   }
                   fill="oklch(82.7% 0.119 306.383)"

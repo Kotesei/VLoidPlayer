@@ -9,7 +9,7 @@ interface SongTime {
 }
 
 export function SongNavi() {
-  const { audio, isPlaying, isReset, setIsReset } = useAudio();
+  const { audio, isPlaying, isReset, setIsReset, trackList } = useAudio();
   const sliderRef = useRef<HTMLSpanElement>(null);
   const [sliderPos, setSliderPos] = useState<number>(0);
   const [isSeeking, setIsSeeking] = useState<boolean>(false);
@@ -28,6 +28,7 @@ export function SongNavi() {
     const sliderThumb = sliderRef.current.querySelector('[role="slider"]');
 
     if (sliderThumb) {
+      if (!audio.currentTime) return;
       const value = sliderThumb.getAttribute("aria-valuenow");
       const meterCompletion = (Number(value) / 100) * audio.duration;
       audio.currentTime = +meterCompletion;

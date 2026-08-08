@@ -32,7 +32,7 @@ export function CoverArt() {
 
   useEffect(() => {
     if (!coverArtRef.current) return;
-    const src = "./src/assets/test2.json";
+    const src = "./src/assets/test.json";
     const animation = animate(coverArtRef.current, src);
     animationRef.current = { src, item: animation };
     animationRef.current.item?.hide();

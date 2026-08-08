@@ -2,8 +2,8 @@ import { ShuffledTracks } from "../../context/AudioContext";
 import { shuffleArray } from "../shuffleArray";
 
 interface Shuffle {
-  currentSong: string | null;
-  trackList: string[];
+  currentSong: File | null;
+  trackList: File[];
   isShuffling: ShuffledTracks;
   setIsShuffling: React.Dispatch<React.SetStateAction<ShuffledTracks | false>>;
 }
@@ -15,15 +15,14 @@ export async function handleShuffle({
 }: Shuffle) {
   if (!isShuffling) {
     if (!currentSong) return;
-    const currentSongFile =
-      currentSong.split("/")[currentSong.split("/").length - 1];
+
     const newList = [...trackList];
     newList.splice(
-      newList.findIndex((i) => i === currentSongFile),
+      newList.findIndex((i) => i === currentSong),
       1,
     );
     shuffleArray(newList);
-    const shuffledTrackList = [currentSongFile, ...newList];
+    const shuffledTrackList = [currentSong, ...newList];
     setIsShuffling({ trackList, shuffledTrackList });
   } else {
     setIsShuffling(false);

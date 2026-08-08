@@ -8,5 +8,5 @@ export async function handleLike(metadata: SongMetaData | null) {
 
   ///////////// SQLite /////////////////
   // Need to handle if the song already exists in liked list
-  await window.dbHandlers.likeSong(null, metadata);
+  // await window.dbHandlers.likeSong(null, metadata);
 }

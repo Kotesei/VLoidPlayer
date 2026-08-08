@@ -1,16 +1,17 @@
-import { SongMetaData } from "../../context/AudioContext";
+import { ShuffledTracks, SongMetaData } from "../../context/AudioContext";
 import { getMetaData } from "../metadata";
 
 interface Previous {
   metadata: SongMetaData | null;
-  currentSong: string | null;
+  currentSong: File | null;
   audio: HTMLAudioElement | null;
-  trackList: string[];
+  trackList: File[];
   setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   setMetadata: React.Dispatch<React.SetStateAction<SongMetaData | null>>;
-  setCurrentSong: React.Dispatch<React.SetStateAction<string | null>>;
+  setCurrentSong: React.Dispatch<React.SetStateAction<File | null>>;
   isPlaying: boolean;
+  isShuffling: ShuffledTracks | false;
 }
 
 export async function handlePreviousTrack({
@@ -23,6 +24,7 @@ export async function handlePreviousTrack({
   setCurrentSong,
   isPlaying,
   setIsPlaying,
+  isShuffling,
 }: Previous) {
   if (!metadata) return;
   if (!audio) return;
@@ -31,15 +33,17 @@ export async function handlePreviousTrack({
     setIsReset(true);
   } else {
     if (!currentSong) return;
-    const currentSongFile =
-      currentSong.split("/")[currentSong.split("/").length - 1];
-    const prevTrack = trackList[trackList.indexOf(currentSongFile) - 1];
+    const prevTrack = isShuffling
+      ? isShuffling.shuffledTrackList[
+          isShuffling.shuffledTrackList.indexOf(currentSong) - 1
+        ]
+      : trackList[trackList.indexOf(currentSong) - 1];
     if (prevTrack) {
       audio.src = "";
-      const src = `./src/assets/${prevTrack}`;
       setIsReset(false);
-      getMetaData(src, setMetadata);
-      setCurrentSong(src);
+      getMetaData(prevTrack, setMetadata);
+      setCurrentSong(prevTrack);
+      audio.src = URL.createObjectURL(prevTrack);
       if (!isPlaying) setIsPlaying(true);
     } else {
       // This is when trying to go to previous track on the start of a list

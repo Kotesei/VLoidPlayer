@@ -4,14 +4,14 @@ import { ShuffledTracks, SongMetaData } from "../../context/AudioContext";
 
 interface Next {
   metadata: SongMetaData | null;
-  currentSong: string | null;
+  currentSong: File | null;
   audio: HTMLAudioElement | null;
   loopState: string;
-  trackList: string[];
+  trackList: File[] | null;
   setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   setMetadata: React.Dispatch<React.SetStateAction<SongMetaData | null>>;
-  setCurrentSong: React.Dispatch<React.SetStateAction<string | null>>;
+  setCurrentSong: React.Dispatch<React.SetStateAction<File | null>>;
   isShuffling: ShuffledTracks | false;
 }
 export async function handleNextTrack(
@@ -30,6 +30,7 @@ export async function handleNextTrack(
     isShuffling,
   }: Next,
 ) {
+  if (!trackList) return;
   if (!metadata) return;
   if (!currentSong) return;
   if (!audio) return;
@@ -42,15 +43,13 @@ export async function handleNextTrack(
     audio.currentTime = 0;
     return;
   }
-  const currentSongFile =
-    currentSong.split("/")[currentSong.split("/").length - 1];
   const nextTrack = isShuffling
     ? isShuffling.shuffledTrackList[
-        isShuffling.shuffledTrackList.indexOf(currentSongFile) + 1
+        isShuffling.shuffledTrackList.indexOf(currentSong) + 1
       ]
-    : trackList[trackList.indexOf(currentSongFile) + 1];
+    : trackList[trackList.indexOf(currentSong) + 1];
 
-  let src;
+  let song;
 
   if (!nextTrack) {
     // If not in loop list mode
@@ -58,14 +57,13 @@ export async function handleNextTrack(
       handleEnd({ setIsPlaying, audio, setIsReset });
       return;
     } else {
-      src = isShuffling
-        ? `./src/assets/${isShuffling.shuffledTrackList[0]}`
-        : `./src/assets/${trackList[0]}`;
+      song = isShuffling ? isShuffling.shuffledTrackList[0] : trackList[0];
     }
   } else {
-    src = `./src/assets/${nextTrack}`;
+    song = nextTrack;
   }
-  getMetaData(src, setMetadata);
-  setCurrentSong(src);
+  getMetaData(song, setMetadata);
+  setCurrentSong(song);
   setIsPlaying(true);
+  audio.src = URL.createObjectURL(song);
 }

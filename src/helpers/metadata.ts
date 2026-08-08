@@ -1,11 +1,9 @@
 import { parseBlob } from "music-metadata";
 import { formatTime } from "./formatTime";
 
-export async function getMetaData(song: string, setState: any) {
+export async function getMetaData(song: File, setState: any) {
   // Get metadata
-  const res = await fetch(song);
-  const data = await res.blob();
-  const metadata = await parseBlob(data);
+  const metadata = await parseBlob(song);
   const songMetaData = {
     songName: metadata.common.title,
     artist: metadata.common.artist,
