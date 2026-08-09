@@ -60,18 +60,19 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined);
 export function AudioProvider({ children }: { children: ReactNode }) {
   // Contains the tracklist
   const [trackList, setTrackList] = useState<File[] | null>(null);
-  const { files, setUploadState } = useFiles();
+  const { files, setUploadState, uploadState } = useFiles();
 
   useEffect(() => {
     if (!files) return;
     if (!audio) return;
+    if (uploadState) return;
 
     files.map((file) => {
       setTrackList((prev) => [...(prev ?? []), file]);
     });
     const firstTrack = files[0];
     audio.src = URL.createObjectURL(firstTrack);
-  }, [files]);
+  }, [files, uploadState]);
 
   const [isShuffling, setIsShuffling] = useState<ShuffledTracks | false>(false);
   // check/set when user is playing song
@@ -180,7 +181,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!files) return;
     if (!trackList) return;
     setCurrentSong(trackList[0]);
-    setUploadState(true);
+    // setUploadState(false);
   }, [files, trackList]);
   ///////////////////////////
 

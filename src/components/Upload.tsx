@@ -2,44 +2,95 @@ import { useFiles } from "../context/FileContext";
 
 // Starting point for new visitors (Web Version)
 export function Upload() {
-  const { files, drag_drop_zone, handleLoadRandomSamples } = useFiles();
+  const {
+    files,
+    drag_drop_zone,
+    handleLoadRandomSamples,
+    setFiles,
+    setUploadState,
+    validFiles,
+  } = useFiles();
+
+  function handleRemoveFile(target: File) {
+    if (!files) return;
+    setFiles(files.filter((file) => file !== target));
+  }
+
+  function handleLoadValidFiles() {
+    setFiles(validFiles);
+    setUploadState(false);
+  }
 
   return (
-    <div className="flex justify-center items-center w-full h-full">
-      <div
-        ref={drag_drop_zone}
-        id="drag_drop_zone"
-        className="w-[80dvw] h-[50dvh] border-2 border-white border-dashed rounded-2xl flex-col gap-7 flex justify-center items-center"
-      >
-        {files && (
-          <>
-            {files.map((file, i) => {
-              return (
-                <p key={i} className="text-white">
-                  {file.name}
-                </p>
-              );
-            })}
-          </>
-        )}
-        {!files && (
-          <>
-            <h1 className="text-white text-3xl italic text-center px-30">
-              Please drop/upload any audio files here to proceed or use the
-              sample audio instead.
-            </h1>
-            <div className="flex gap-5">
-              <button className="bg-white px-20 py-2 rounded-full text-2xl">
-                Upload
-              </button>
-              <button
-                onClick={handleLoadRandomSamples}
-                className="bg-white px-20 py-2 rounded-full text-2xl"
-              >
-                Use Samples
-              </button>
+    <div className="flex flex-col justify-center items-center w-full gap-5 h-full">
+      <div className="p-5 w-[80dvw] h-[50dvh] bg-black border-2 border-white border-dashed rounded-2xl relative flex flex-col gap-5">
+        <div
+          ref={drag_drop_zone}
+          id="drag_drop_zone"
+          className={`h-full flex-col gap-7 flex ${!files ? "justify-center" : "overflow-y-auto scrollbar-thin scrollbar-thumb-white"} items-center`}
+        >
+          {files && (
+            <>
+              <div className="flex flex-col bg-black w-full flex-1 gap-4">
+                {files.map((file, i) => {
+                  return (
+                    <div key={i} className="flex gap-5 items-center">
+                      <button
+                        onClick={() => handleRemoveFile(file)}
+                        className="rounded-full flex justify-center items-center leading-1 pb-1 h-5 w-5 bg-amber-50 text-black"
+                      >
+                        x
+                      </button>
+                      <p
+                        className={`${file.type.includes("audio") ? "text-green-300" : "text-red-400"}`}
+                      >
+                        {file.name}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+          {!files && (
+            <>
+              <h1 className="text-white text-3xl italic text-center px-30">
+                Please drop/upload any audio files here to proceed or use the
+                sample audio instead.
+              </h1>
+              <div className="flex gap-5">
+                <button className="bg-white px-20 py-2 rounded-full text-2xl">
+                  Upload
+                </button>
+                <button
+                  onClick={handleLoadRandomSamples}
+                  className="bg-white px-20 py-2 rounded-full text-2xl"
+                >
+                  Use Samples
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+        {validFiles && files && (
+          <div className="flex justify-end gap-3">
+            <div className="flex flex-col">
+              <p className="text-green-400 text-end">
+                Valid Entries: {validFiles.length}
+              </p>
+              <p className="text-red-400 text-end">
+                Invalid Entries: {files.length - validFiles.length}
+              </p>
             </div>
-          </>
+            {validFiles.length > 0 && (
+              <button
+                onClick={handleLoadValidFiles}
+                className="bg-amber-50 px-5 pb-1 justify-center items-center rounded-xl w-fit flex text-2xl "
+              >
+                {validFiles.length === 1 ? "Import File" : "Import Files"}
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

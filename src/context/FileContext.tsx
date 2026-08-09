@@ -14,13 +14,15 @@ interface FileContextType {
   setFiles: React.Dispatch<React.SetStateAction<File[] | null>>;
   drag_drop_zone: React.RefObject<HTMLInputElement>;
   handleLoadRandomSamples: () => void;
+  validFiles: File[] | null;
 }
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
 
 export function TracksProvider({ children }: { children: ReactNode }) {
-  const [uploadState, setUploadState] = useState(false);
+  const [uploadState, setUploadState] = useState(true);
   const [files, setFiles] = useState<File[] | null>(null);
+  const [validFiles, setValidFiles] = useState<null | File[]>(null);
   const drag_drop_zone = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -40,9 +42,12 @@ export function TracksProvider({ children }: { children: ReactNode }) {
 
     const dropFiles = (e: DragEvent) => {
       e.preventDefault();
-      const transferedFiles = e.dataTransfer?.files;
-      console.log(transferedFiles);
-      setFiles(Array.from(transferedFiles || []));
+      const transferedFiles = files
+        ? [...files, ...Array.from(e.dataTransfer?.files || [])]
+        : Array.from(e.dataTransfer?.files || []);
+
+      setFiles(transferedFiles);
+      drag_drop_zone.current?.classList.add("dropped_files");
     };
 
     el.addEventListener("dragover", dragOver);
@@ -54,12 +59,14 @@ export function TracksProvider({ children }: { children: ReactNode }) {
       el.removeEventListener("dragleave", dragLeave);
       el.removeEventListener("drop", dropFiles);
     };
-  }, [drag_drop_zone]);
+  }, [drag_drop_zone, files]);
 
   useEffect(() => {
     if (!files) return;
-    drag_drop_zone.current?.classList.add("dropped_files");
-  }, [files]);
+    const filteredFiles = files.filter((file) => file.type.includes("audio"));
+    if (!filteredFiles) return;
+    setValidFiles(filteredFiles);
+  }, [files, uploadState]);
 
   async function handleLoadRandomSamples() {
     const samples = [
@@ -83,7 +90,6 @@ export function TracksProvider({ children }: { children: ReactNode }) {
       const res = await fetch(`./src/assets/sample_audio/${sample}`);
       const song: Blob = await res.blob();
 
-      console.log(song);
       const songFile = new File([song], sample, {
         type: song.type,
         lastModified: Date.now(),
@@ -94,8 +100,8 @@ export function TracksProvider({ children }: { children: ReactNode }) {
 
     const songFiles = await Promise.all(songs);
 
-    console.log(songFiles);
     setFiles(Array.from(songFiles || []));
+    setUploadState(false);
   }
 
   return (
@@ -107,6 +113,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
         setFiles,
         drag_drop_zone,
         handleLoadRandomSamples,
+        validFiles,
       }}
     >
       {children}

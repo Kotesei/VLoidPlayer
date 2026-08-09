@@ -35,8 +35,8 @@ function App() {
 
   return (
     <>
-      {!uploadState && <Upload />}
-      {uploadState && (
+      {uploadState && <Upload />}
+      {!uploadState && (
         <div className="h-full w-full flex-col flex items-center justify-end gap-3">
           <SongDetails />
           <div
