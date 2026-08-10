@@ -22,7 +22,7 @@
 
 # Goals:
 
-- [ ] [**80% Done**] Sample Website (Need to finish up the upload state and handle any files that might be loaded in.)
+- [ ] [**90% Done**] Sample Website (Needs database and testing.)
 
 - [ ] [**60% Done**] Fully Built Electron App (Functionality done, needs file system management)
 
@@ -32,9 +32,15 @@
 
 # Things to consider for final build
 
+- [ ] Ensure web app works well on mobile devices (Things such as the slider for seeking are bugged on mobile since it most likely uses a different event listener)
+
+- [ ] Option to disable cover art animations
+
+- [ ] Store the music and metadata inside a local database. (Metadata can be stored, need to test storing music files as well in order to skip upload page).
+
 - [x] ~~Music should be prerendered for web example, probably gonna have a loader before the app loads since this app is not intended for use with internet~~ Upload page shows up first, which allows either sample music to be selected from the list (Randomly Max 3) or take however much songs the user puts in.
 
-- [ ] Make sure nothing but valid audio sources are added (It's currently possible to throw in files that aren't even audio)
+- [x] ~~Make sure nothing but valid audio sources are added (It's currently possible to throw in files that aren't even audio)~~
 
 - [ ] Need to consider the possibility of no metadata + different audio formats (Possible to add an actual audio file but since there is missing information, the app bugs out and won't show the animation properly)
 

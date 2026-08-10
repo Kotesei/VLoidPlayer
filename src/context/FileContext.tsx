@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { shuffleArray } from "../helpers/shuffleArray";
+import { readDB } from "../helpers/database/db";
 interface FileContextType {
   uploadState: boolean;
   setUploadState: React.Dispatch<React.SetStateAction<boolean>>;
@@ -24,7 +25,6 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   const [files, setFiles] = useState<File[] | null>(null);
   const [validFiles, setValidFiles] = useState<null | File[]>(null);
   const drag_drop_zone = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     if (!drag_drop_zone) return;
     const el = drag_drop_zone.current;
@@ -41,6 +41,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
     };
 
     const dropFiles = (e: DragEvent) => {
+      if (e.dataTransfer?.dropEffect !== "copy") return;
       e.preventDefault();
       const transferedFiles = files
         ? [...files, ...Array.from(e.dataTransfer?.files || [])]
@@ -103,6 +104,17 @@ export function TracksProvider({ children }: { children: ReactNode }) {
     setFiles(Array.from(songFiles || []));
     setUploadState(false);
   }
+  // useEffect(() => {
+  //   if (!init) return;
+  //   setInit(false);
+  //   console.log("uh");
+  //   readDB();
+  // }, [init]);
+
+  // For debugging purposes or maybe page loading [Could be useful for removing audio that is stored in the database if user wishes to remove songs, or even skipping the upload page sequence completely]
+  useEffect(() => {
+    readDB();
+  }, []);
 
   return (
     <FileContext.Provider

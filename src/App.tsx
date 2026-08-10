@@ -10,7 +10,7 @@ import { handleNextTrack } from "./helpers/audio/next";
 import { handlePlayPause } from "./helpers/audio/play_pause";
 import { handlePreviousTrack } from "./helpers/audio/previous";
 import { handleShuffle } from "./helpers/audio/shuffle";
-import { handleLike } from "./helpers/db/likeSong";
+import { handleLike } from "./helpers/database/likeSong";
 import { Upload } from "./components/Upload";
 import { useFiles } from "./context/FileContext";
 
