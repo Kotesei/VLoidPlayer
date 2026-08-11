@@ -1,3 +1,5 @@
+import { SongMetaData } from "../../context/AudioContext";
+
 async function openDB(): Promise<IDBDatabase> {
   return new Promise((res, rej) => {
     const request = indexedDB.open("MusicDatabase", 1);
@@ -33,10 +35,17 @@ async function openDB(): Promise<IDBDatabase> {
 // Start Database
 export const db = await openDB();
 
+interface DBFile {
+  metadata: SongMetaData;
+  file: File;
+}
 // Read DB using queries [Most for debugging]
-export async function readDB() {
-  const transaction = db.transaction("likedSongs", "readwrite");
-  const store = transaction.objectStore("likedSongs");
-  const queryAll = store.getAll();
-  queryAll.onsuccess = () => console.log(queryAll.result);
+export async function readDB(): Promise<DBFile[]> {
+  return new Promise((res, rej) => {
+    const transaction = db.transaction("likedSongs", "readonly");
+    const store = transaction.objectStore("likedSongs");
+    const req = store.getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
 }

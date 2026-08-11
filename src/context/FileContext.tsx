@@ -16,6 +16,7 @@ interface FileContextType {
   drag_drop_zone: React.RefObject<HTMLInputElement>;
   handleLoadRandomSamples: () => void;
   validFiles: File[] | null;
+  loadedDBFiles: File[] | null;
 }
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
@@ -24,6 +25,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   const [uploadState, setUploadState] = useState(true);
   const [files, setFiles] = useState<File[] | null>(null);
   const [validFiles, setValidFiles] = useState<null | File[]>(null);
+  const [loadedDBFiles, setLoadedDBFiles] = useState<File[] | null>(null);
   const drag_drop_zone = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (!drag_drop_zone) return;
@@ -104,17 +106,26 @@ export function TracksProvider({ children }: { children: ReactNode }) {
     setFiles(Array.from(songFiles || []));
     setUploadState(false);
   }
-  // useEffect(() => {
-  //   if (!init) return;
-  //   setInit(false);
-  //   console.log("uh");
-  //   readDB();
-  // }, [init]);
 
   // For debugging purposes or maybe page loading [Could be useful for removing audio that is stored in the database if user wishes to remove songs, or even skipping the upload page sequence completely]
   useEffect(() => {
-    readDB();
+    async function loadDB() {
+      const dbFiles = await readDB();
+      dbFiles.map((dbFile) =>
+        setLoadedDBFiles((prev) => [...(prev || []), dbFile.file]),
+      );
+    }
+
+    return () => {
+      loadDB();
+    };
   }, []);
+
+  // Logs files in the database
+  useEffect(() => {
+    if (!loadedDBFiles) return;
+    console.log(loadedDBFiles);
+  }, [loadedDBFiles]);
 
   return (
     <FileContext.Provider
@@ -126,6 +137,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
         drag_drop_zone,
         handleLoadRandomSamples,
         validFiles,
+        loadedDBFiles,
       }}
     >
       {children}

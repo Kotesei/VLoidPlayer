@@ -60,7 +60,7 @@ function App() {
                 />
                 <Button
                   like
-                  onClick={() => handleLike(metadata)}
+                  onClick={() => handleLike(metadata, currentSong)}
                   stroke="oklch(82.7% 0.119 306.383)"
                 />
                 <Button

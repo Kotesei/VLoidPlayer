@@ -8,31 +8,37 @@ import { db } from "./db";
 // }
 
 //////////// IndexedDB ////////////
-export async function handleLike(metadata: SongMetaData | null) {
+export async function handleLike(
+  metadata: SongMetaData | null,
+  file: File | null,
+) {
   if (!metadata) return;
+  if (!file) return;
+
   const transaction = db.transaction("likedSongs", "readwrite");
   const store = transaction.objectStore("likedSongs");
   // Gets all songs
   const idQuery = store.getAll();
 
-  const song = {
-    song_name: metadata.songName,
-    artist: metadata.artist,
-    album: metadata.album,
-    duration: metadata.duration,
-    cover_art: metadata.coverArt,
-  };
-
   idQuery.onsuccess = () => {
     const songFound = idQuery.result.find(
-      (query) => query.song_name === metadata.songName,
+      (query) => query.metadata.song_name === metadata.songName,
     );
     // Run unlike logic here
     if (songFound) {
       console.log(songFound);
     } else {
       // Otherwise like song
-      store.put(song);
+      store.put({
+        metadata: {
+          song_name: metadata.songName,
+          artist: metadata.artist,
+          album: metadata.album,
+          duration: metadata.duration,
+          cover_art: metadata.coverArt,
+        },
+        file,
+      });
     }
   };
 }
