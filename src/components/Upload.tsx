@@ -22,6 +22,7 @@ export function Upload() {
   }
 
   function handleLoadValidFiles() {
+    console.log(validFiles);
     setFiles(validFiles);
     setUploadState(false);
   }
@@ -38,7 +39,18 @@ export function Upload() {
     if (!showDBNotice) return;
     setDBNotice(false);
     if (load) {
-      setFiles(loadedDBFiles);
+      if (!loadedDBFiles) return;
+      let uniqueFiles: File[];
+      // Checks if file has been added to upload list before putting the DB file in
+      if (files) {
+        uniqueFiles = loadedDBFiles.filter((dbFile) => {
+          const exists = files.some(
+            (file) => file.name === dbFile.name && file.size === dbFile.size,
+          );
+          return !exists;
+        });
+      }
+      setFiles((prev) => [...(prev || []), ...uniqueFiles]);
     }
   }
 
@@ -80,6 +92,12 @@ export function Upload() {
             <>
               <div className="flex flex-col bg-black w-full flex-1 gap-4">
                 {files.map((file, i) => {
+                  // Checks if file is in DB
+                  let inDB;
+                  if (loadedDBFiles) {
+                    if (loadedDBFiles.find((dbfile) => dbfile === file))
+                      inDB = true;
+                  }
                   return (
                     <div key={i} className="flex gap-5 items-center">
                       <button
@@ -89,7 +107,7 @@ export function Upload() {
                         x
                       </button>
                       <p
-                        className={`${file.type.includes("audio") ? "text-green-300" : "text-red-400"}`}
+                        className={`${file.type.includes("audio") ? (inDB ? "text-blue-300" : "text-green-300") : "text-red-400"}`}
                       >
                         {file.name}
                       </p>

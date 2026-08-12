@@ -49,7 +49,15 @@ export function TracksProvider({ children }: { children: ReactNode }) {
         ? [...files, ...Array.from(e.dataTransfer?.files || [])]
         : Array.from(e.dataTransfer?.files || []);
 
-      setFiles(transferedFiles);
+      // Only allow unique files into the list
+      const uniqueFiles = transferedFiles.filter(
+        (curFile, i, self) =>
+          i ===
+          self.findIndex(
+            (file) => file.name === curFile.name && file.size === curFile.size,
+          ),
+      );
+      setFiles(uniqueFiles);
       drag_drop_zone.current?.classList.add("dropped_files");
     };
 
@@ -66,9 +74,11 @@ export function TracksProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!files) return;
-    const filteredFiles = files.filter((file) => file.type.includes("audio"));
-    if (!filteredFiles) return;
-    setValidFiles(filteredFiles);
+
+    const audioFiles = files.filter((file) => file.type.includes("audio"));
+
+    if (!audioFiles) return;
+    setValidFiles(audioFiles);
   }, [files, uploadState]);
 
   async function handleLoadRandomSamples() {
