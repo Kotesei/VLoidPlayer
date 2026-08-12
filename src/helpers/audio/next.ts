@@ -34,6 +34,7 @@ export async function handleNextTrack(
   if (!metadata) return;
   if (!currentSong) return;
   if (!audio) return;
+
   if (ended && loopState === "single") {
     audio.currentTime = 0;
     audio.play();

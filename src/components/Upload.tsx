@@ -40,7 +40,7 @@ export function Upload() {
     setDBNotice(false);
     if (load) {
       if (!loadedDBFiles) return;
-      let uniqueFiles: File[];
+      let uniqueFiles: File[] = loadedDBFiles;
       // Checks if file has been added to upload list before putting the DB file in
       if (files) {
         uniqueFiles = loadedDBFiles.filter((dbFile) => {

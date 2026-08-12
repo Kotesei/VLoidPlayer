@@ -55,6 +55,7 @@ function App() {
                       trackList,
                       isShuffling,
                       setIsShuffling,
+                      metadata,
                     })
                   }
                 />

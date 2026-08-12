@@ -107,7 +107,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         setCurrentSong,
         isShuffling,
       }),
-    [loopState, metadata],
+    [loopState, metadata, isShuffling],
   );
 
   // Runs after song ends

@@ -22,7 +22,7 @@
 
 # Goals:
 
-- [ ] [**90% Done**] Sample Website (Needs database and testing.)
+- [ ] [**95% Done**] Sample Website (Testing Phase.)
 
 - [ ] [**60% Done**] Fully Built Electron App (Functionality done, needs file system management)
 
@@ -36,16 +36,20 @@
 
 - [ ] Option to disable cover art animations
 
-- [ ] Store the music and metadata inside a local database. (Metadata can be stored, need to test storing music files as well in order to skip upload page).
+- [ ] Create a route to the upload page and player
+
+- [ ] Need to consider the possibility of no metadata + different audio formats (Possible to add an actual audio file but since there is missing information, the app bugs out and won't show the animation properly)
+
+- [ ] Thinking of adding a cool visual animation for when importing songs, will most likely add it after most the app is functional (Need to ensure app runs decent at least on web before considering it but I'll apply it on the actual app)
+
+- [x] ~~Store the music and metadata inside a local database. (Metadata can be stored, need to test storing music files as well in order to skip upload page).~~
 
 - [x] ~~Music should be prerendered for web example, probably gonna have a loader before the app loads since this app is not intended for use with internet~~ Upload page shows up first, which allows either sample music to be selected from the list (Randomly Max 3) or take however much songs the user puts in.
 
 - [x] ~~Make sure nothing but valid audio sources are added (It's currently possible to throw in files that aren't even audio)~~
 
-- [ ] Need to consider the possibility of no metadata + different audio formats (Possible to add an actual audio file but since there is missing information, the app bugs out and won't show the animation properly)
-
 - [x] ~~Do some tests in the network tab and make sure everything only needs to render once. Things like the animation or the cover art can render as much as needed since those are always changing. I noticed icons like svgs on click are rerendering and while it's very little impact in terms of size when rendering, I rather eliminate rerendering if it is not required.~~ (Most of the rendering seems to be low enough to have low impact and is mostly relying on Blobs)
 
-- [ ] Consider multiple artists involved as well
+- [ ] ~~Consider multiple artists involved as well~~ Not working on this, seems extra for web version (Saving it for actual app purposes instead)
 
-- [ ] Thinking of adding a cool visual animation for when importing songs, will most likely add it after most the app is functional (Need to ensure app runs decent at least on web before considering it but I'll apply it on the actual app)
+- [ ] (MAYBE) Switch to using a more advanced audio API for preventing weird cutoff when changing/looping audio. It should be seamless.
