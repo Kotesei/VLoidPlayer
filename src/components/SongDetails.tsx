@@ -16,7 +16,7 @@ export function SongDetails() {
           {metadata?.artist ?? "Unknown"}
         </h2>
         <h2 className="text-xs flex  leading-3.5 justify-center">
-          {metadata?.songName ?? "Unknown"}
+          {metadata?.song_name ?? "Unknown"}
         </h2>
         <h2 className="text-[9px] flex leading-3.5 justify-center font-medium">
           {metadata?.album ?? "Unknown"}

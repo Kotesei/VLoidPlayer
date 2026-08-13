@@ -13,7 +13,7 @@ import { useFiles } from "./FileContext";
 
 // Types
 export interface SongMetaData {
-  songName?: string;
+  song_name?: string;
   artist?: string;
   album?: string;
   duration?: number;
@@ -154,7 +154,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     //Gets the metadata for the next song (ONLY if there is a next song!!) once current metadata is found.
     if (nextTrack) getMetaData(song, setNextSong);
 
-    document.title = metadata.songName ?? "VLoid Player";
+    document.title = metadata.song_name ?? "VLoid Player";
     // Go to next track in the queue once song ends
     audio.addEventListener("ended", onEnded);
     return () => audio.removeEventListener("ended", onEnded);

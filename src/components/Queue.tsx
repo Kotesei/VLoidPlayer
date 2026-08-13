@@ -31,7 +31,7 @@ export function Queue() {
           {nextSong && (
             <>
               <p className="text-[9px] flex-1">Up Next</p>
-              <p>{nextSong?.songName ?? "None"}</p>
+              <p>{nextSong?.song_name ?? "None"}</p>
             </>
           )}
           {!trackList && (

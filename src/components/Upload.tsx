@@ -15,6 +15,7 @@ export function Upload() {
 
   const [isHovering, setIsHovering] = useState<boolean>(false);
   const [showDBNotice, setDBNotice] = useState<boolean>(true);
+  const [usingDBFiles, setUsingDBFiles] = useState<boolean>(false);
 
   function handleRemoveFile(target: File) {
     if (!files) return;
@@ -22,7 +23,6 @@ export function Upload() {
   }
 
   function handleLoadValidFiles() {
-    console.log(validFiles);
     setFiles(validFiles);
     setUploadState(false);
   }
@@ -38,7 +38,9 @@ export function Upload() {
   function handleUseDBFiles(load: boolean) {
     if (!showDBNotice) return;
     setDBNotice(false);
+    setUsingDBFiles(false);
     if (load) {
+      setUsingDBFiles(true);
       if (!loadedDBFiles) return;
       let uniqueFiles: File[] = loadedDBFiles;
       // Checks if file has been added to upload list before putting the DB file in
@@ -91,15 +93,17 @@ export function Upload() {
           {files && (
             <>
               <div className="flex flex-col bg-black w-full flex-1 gap-4">
-                {files.map((file, i) => {
+                {files.map((file, key) => {
                   // Checks if file is in DB
                   let inDB;
                   if (loadedDBFiles) {
-                    if (loadedDBFiles.find((dbfile) => dbfile === file))
+                    if (
+                      loadedDBFiles.find((dbfile) => dbfile.name === file.name)
+                    )
                       inDB = true;
                   }
                   return (
-                    <div key={i} className="flex gap-5 items-center">
+                    <div key={key} className="flex gap-5 items-center">
                       <button
                         onClick={() => handleRemoveFile(file)}
                         className="rounded-full flex justify-center items-center leading-1 pb-1 h-5 w-5 bg-amber-50 text-black"
@@ -107,7 +111,7 @@ export function Upload() {
                         x
                       </button>
                       <p
-                        className={`${file.type.includes("audio") ? (inDB ? "text-blue-300" : "text-green-300") : "text-red-400"}`}
+                        className={`${/\.(mp3|wav|m4a|flac|ogg|opus|webm|aac)$/i.test(file.name) ? (inDB ? "text-blue-300" : "text-green-300") : "text-red-400"}`}
                       >
                         {file.name}
                       </p>
@@ -140,17 +144,25 @@ export function Upload() {
         {validFiles && files && (
           <div className="flex justify-end gap-3">
             <div className="flex flex-col">
-              <p className="text-green-400 text-end">
-                Valid Entries: {validFiles.length}
+              {loadedDBFiles && (
+                <p className="text-blue-300 text-end text-sm leading-4">
+                  Database Entries: {loadedDBFiles.length}
+                </p>
+              )}
+              <p className="text-green-300 text-end text-sm leading-4">
+                Valid Entries:{" "}
+                {usingDBFiles && loadedDBFiles
+                  ? validFiles.length - loadedDBFiles?.length
+                  : validFiles.length}
               </p>
-              <p className="text-red-400 text-end">
+              <p className="text-red-400 text-end text-sm leading-4">
                 Invalid Entries: {files.length - validFiles.length}
               </p>
             </div>
             {validFiles.length > 0 && (
               <button
                 onClick={handleLoadValidFiles}
-                className="bg-amber-50 px-5 pb-1 justify-center items-center rounded-xl w-fit flex text-2xl "
+                className="bg-amber-50 px-8 pb-1 justify-center items-center rounded-xl w-fit flex text-2xl "
               >
                 {validFiles.length === 1 ? "Import File" : "Import Files"}
               </button>

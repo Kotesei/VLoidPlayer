@@ -5,7 +5,7 @@ export async function getMetaData(song: File, setState: any) {
   // Get metadata
   const metadata = await parseBlob(song);
   const songMetaData = {
-    songName: metadata.common.title,
+    song_name: metadata.common.title,
     artist: metadata.common.artist,
     album: metadata.common.album,
     coverArt: metadata.common.picture?.[0] ?? null,
@@ -21,7 +21,9 @@ export async function getMetaData(song: File, setState: any) {
     return url;
   }
 
-  songMetaData.coverArtURL = createBlob(songMetaData.coverArt);
+  if (songMetaData.coverArt) {
+    songMetaData.coverArtURL = createBlob(songMetaData.coverArt);
+  }
 
   setState(songMetaData);
 }

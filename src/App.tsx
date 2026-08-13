@@ -13,6 +13,7 @@ import { handleShuffle } from "./helpers/audio/shuffle";
 import { handleLike } from "./helpers/database/likeSong";
 import { Upload } from "./components/Upload";
 import { useFiles } from "./context/FileContext";
+import { loadDB } from "./helpers/database/db";
 
 function App() {
   const {
@@ -31,8 +32,13 @@ function App() {
     isShuffling,
     setIsShuffling,
   } = useAudio();
-  const { uploadState } = useFiles();
-
+  const {
+    uploadState,
+    loadedDBMetadata,
+    setLoadedDBFiles,
+    setLoadedDBMetadata,
+    loadedDBFiles,
+  } = useFiles();
   return (
     <>
       {uploadState && <Upload />}
@@ -48,6 +54,7 @@ function App() {
               <div className="flex justify-between">
                 <Button
                   shuffle
+                  isShuffling={isShuffling}
                   stroke="oklch(82.7% 0.119 306.383)"
                   onClick={() =>
                     handleShuffle({
@@ -61,11 +68,22 @@ function App() {
                 />
                 <Button
                   like
-                  onClick={() => handleLike(metadata, currentSong)}
+                  metadata={metadata}
+                  loadedDBMetadata={loadedDBMetadata}
+                  likeSong={() => {
+                    handleLike(
+                      metadata,
+                      currentSong,
+                      setLoadedDBFiles,
+                      setLoadedDBMetadata,
+                    );
+                  }}
                   stroke="oklch(82.7% 0.119 306.383)"
+                  fill="oklch(82.7% 0.119 306.383)"
                 />
                 <Button
                   repeat
+                  loop={loopState}
                   stroke="oklch(82.7% 0.119 306.383)"
                   onClick={() =>
                     handleLoop({ metadata, audio, onEnded, setLoopState })
