@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFiles } from "../context/FileContext";
+import { loadDB, removeFromDB } from "../helpers/database/db";
 
 // Starting point for new visitors (Web Version)
 export function Upload() {
@@ -11,6 +12,10 @@ export function Upload() {
     setUploadState,
     validFiles,
     loadedDBFiles,
+    setLoadedDBFiles,
+    setLoadedDBMetadata,
+    setDB,
+    db,
   } = useFiles();
 
   const [isHovering, setIsHovering] = useState<boolean>(false);
@@ -18,6 +23,14 @@ export function Upload() {
   const [usingDBFiles, setUsingDBFiles] = useState<boolean>(false);
 
   function handleRemoveFile(target: File) {
+    if (db) {
+      db.find((item) => {
+        if (item.file.name === target.name) {
+          removeFromDB(item);
+          loadDB(setLoadedDBFiles, setLoadedDBMetadata, setDB, false);
+        }
+      });
+    }
     if (!files) return;
     setFiles(files.filter((file) => file !== target));
   }
@@ -96,10 +109,8 @@ export function Upload() {
                 {files.map((file, key) => {
                   // Checks if file is in DB
                   let inDB;
-                  if (loadedDBFiles) {
-                    if (
-                      loadedDBFiles.find((dbfile) => dbfile.name === file.name)
-                    )
+                  if (loadedDBFiles && db) {
+                    if (db.find((dbfile) => dbfile.file.name === file.name))
                       inDB = true;
                   }
                   return (
@@ -111,7 +122,7 @@ export function Upload() {
                         x
                       </button>
                       <p
-                        className={`${/\.(mp3|wav|m4a|flac|ogg|opus|webm|aac)$/i.test(file.name) ? (inDB ? "text-blue-300" : "text-green-300") : "text-red-400"}`}
+                        className={`${/\.(mp3|wav|m4a|flac|ogg|opus|webm|aac)$/i.test(file.name) ? (inDB && usingDBFiles ? "text-blue-300" : "text-green-300") : "text-red-400"}`}
                       >
                         {file.name}
                       </p>
@@ -144,15 +155,15 @@ export function Upload() {
         {validFiles && files && (
           <div className="flex justify-end gap-3">
             <div className="flex flex-col">
-              {loadedDBFiles && (
+              {db && usingDBFiles && (
                 <p className="text-blue-300 text-end text-sm leading-4">
-                  Database Entries: {loadedDBFiles.length}
+                  Database Entries: {db.length}
                 </p>
               )}
               <p className="text-green-300 text-end text-sm leading-4">
                 Valid Entries:{" "}
-                {usingDBFiles && loadedDBFiles
-                  ? validFiles.length - loadedDBFiles?.length
+                {usingDBFiles && db
+                  ? validFiles.length - db.length
                   : validFiles.length}
               </p>
               <p className="text-red-400 text-end text-sm leading-4">

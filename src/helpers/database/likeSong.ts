@@ -36,6 +36,6 @@ export async function handleLike(
         file,
       });
     }
-    loadDB(setDBFiles, setDBMetadata, true);
+    loadDB(setDBFiles, setDBMetadata, null, true);
   };
 }

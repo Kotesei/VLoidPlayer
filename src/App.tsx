@@ -37,7 +37,6 @@ function App() {
     loadedDBMetadata,
     setLoadedDBFiles,
     setLoadedDBMetadata,
-    loadedDBFiles,
   } = useFiles();
   return (
     <>

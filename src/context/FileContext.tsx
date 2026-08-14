@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { shuffleArray } from "../helpers/shuffleArray";
-import { loadDB, readDB } from "../helpers/database/db";
+import { loadDB } from "../helpers/database/db";
 import { SongMetaData } from "./AudioContext";
 interface FileContextType {
   uploadState: boolean;
@@ -17,12 +17,18 @@ interface FileContextType {
   drag_drop_zone: React.RefObject<HTMLInputElement>;
   handleLoadRandomSamples: () => void;
   validFiles: File[] | null;
+  db: DBFile[] | null;
   loadedDBFiles: File[] | null;
   loadedDBMetadata: SongMetaData[] | null;
   setLoadedDBFiles: React.Dispatch<React.SetStateAction<File[] | null>>;
+  setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>>;
   setLoadedDBMetadata: React.Dispatch<
     React.SetStateAction<SongMetaData[] | null>
   >;
+}
+interface DBFile {
+  metadata: SongMetaData;
+  file: File;
 }
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
@@ -36,6 +42,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
     SongMetaData[] | null
   >(null);
   const drag_drop_zone = useRef<HTMLInputElement>(null);
+  const [db, setDB] = useState<DBFile[] | null>(null);
   useEffect(() => {
     if (!drag_drop_zone) return;
     const el = drag_drop_zone.current;
@@ -132,7 +139,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   // For debugging purposes or maybe page loading [Could be useful for removing audio that is stored in the database if user wishes to remove songs, or even skipping the upload page sequence completely]
   useEffect(() => {
     return () => {
-      loadDB(setLoadedDBFiles, setLoadedDBMetadata, false);
+      loadDB(setLoadedDBFiles, setLoadedDBMetadata, setDB, false);
     };
   }, []);
 
@@ -141,6 +148,9 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   //   if (!loadedDBFiles) return;
   //   console.log(loadedDBFiles);
   //   console.log(loadedDBMetadata);
+  //   console.log(files);
+  //   console.log(validFiles);
+  //   console.log(db);
   // }, [loadedDBFiles]);
 
   return (
@@ -157,6 +167,8 @@ export function TracksProvider({ children }: { children: ReactNode }) {
         loadedDBMetadata,
         setLoadedDBFiles,
         setLoadedDBMetadata,
+        setDB,
+        db,
       }}
     >
       {children}

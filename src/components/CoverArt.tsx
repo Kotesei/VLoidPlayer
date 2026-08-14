@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { animate } from "../helpers/animate";
 import { AnimationItem } from "lottie-web";
 import { useAudio } from "../context/AudioContext";
+import { Button } from "./Button";
 
 interface AnimationData {
   src: string | null;
@@ -12,9 +13,26 @@ export function CoverArt() {
   const coverArtRef = useRef(null);
   // Will probably move this for speed control of the animation in the context in the future
   const [currentSpeed, setSpeed] = useState<number>(1);
+  const [animationVisibility, setAnimationVisibility] = useState(true);
   // Contains the animation data
   const animationRef = useRef<AnimationData | null>(null);
 
+  async function toggleAnimation() {
+    setAnimationVisibility(!animationVisibility);
+  }
+
+  async function goToUploadPage() {
+    console.log("uh");
+  }
+  useEffect(() => {
+    if (!animationRef.current?.item || !animationRef.current.item.isLoaded)
+      return;
+    if (animationVisibility) {
+      animationRef.current.item.show();
+    } else {
+      animationRef.current.item.hide();
+    }
+  }, [animationVisibility, animationRef.current]);
   useEffect(() => {
     if (!coverArtRef.current) return;
     // Set an animation for now (Need to change this to be more dynamic)
@@ -40,22 +58,25 @@ export function CoverArt() {
   }, []);
 
   useEffect(() => {
+    if (!animationVisibility) return;
     if (metadata) animationRef.current?.item?.show();
   }, [metadata]);
 
   return (
     <>
-      <div className="flex w-full justify-between h-3.5 items-center mb-2">
-        <img
-          draggable="false"
-          className="h-full invert-100"
-          src="./src/assets/arrow-outline.svg"
+      <div className="flex w-full justify-between h-5.5 items-center mb-2">
+        <Button
+          upload
+          fill="oklch(82.7% 0.119 306.383)"
+          onClick={goToUploadPage}
         />
 
-        <img
-          draggable="false"
-          className="h-full invert-100"
-          src="./src/assets/ellipsis-vertical.svg"
+        <Button
+          fill="oklch(82.7% 0.119 306.383)"
+          stroke="oklch(82.7% 0.119 306.383)"
+          visible={animationVisibility}
+          animation
+          onClick={toggleAnimation}
         />
       </div>
       <div

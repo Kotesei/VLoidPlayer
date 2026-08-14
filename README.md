@@ -24,7 +24,7 @@
 
 - [ ] [**95% Done**] Sample Website (Testing Phase.)
 
-- [ ] [**60% Done**] Fully Built Electron App (Functionality done, needs file system management)
+- [ ] [**60% Done**] Fully Built Electron App (Functionality done, needs file system management, advanced audio, song bpm detection for on beat animation)
 
 - [ ] [**0% Done**] Mobile Version (Haven't started)
 
@@ -32,23 +32,23 @@
 
 # Things to consider for final build
 
-- [ ] Ensure web app works well on mobile devices (Things such as the slider for seeking are bugged on mobile since it most likely uses a different event listener)
-
-- [ ] Add an option to remove all from database and a confirmation popup.
-
-- [ ] Apply the remove from database function to the songs from the upload page as well (Should only apply to the blue color coded files)
-
-- [ ] Option to disable cover art animations
+- [x] Apply the remove from database function to the songs from the upload page as well (Should only apply to the blue color coded files)
 
 - [ ] Create a route to the upload page and player
+
+- [ ] Add an option to remove all from database and a confirmation popup.
 
 - [ ] Fix next in queue and make sure it shows the right state for liked song or not
 
 - [ ] Don't show a queue if there's only one song loaded regardless of loop state
 
-- [x] ~~Need to consider the possibility of no metadata + different audio formats (Possible to add an actual audio file but since there is missing information, the app bugs out and won't show the animation properly)~~
+- [ ] Ensure web app works well on mobile devices (Things such as the slider for seeking are bugged on mobile since it most likely uses a different event listener)
 
 - [ ] Thinking of adding a cool visual animation for when importing songs, will most likely add it after most the app is functional (Need to ensure app runs decent at least on web before considering it but I'll apply it on the actual app)
+
+- [x] ~~Option to disable cover art animations~~
+
+- [x] ~~Need to consider the possibility of no metadata + different audio formats (Possible to add an actual audio file but since there is missing information, the app bugs out and won't show the animation properly)~~
 
 - [x] ~~Store the music and metadata inside a local database. (Metadata can be stored, need to test storing music files as well in order to skip upload page).~~
 
@@ -60,4 +60,4 @@
 
 - [ ] ~~Consider multiple artists involved as well~~ Not working on this, seems extra for web version (Saving it for actual app purposes instead)
 
-- [ ] (MAYBE) Switch to using a more advanced audio API for preventing weird cutoff when changing/looping audio. It should be seamless.
+- [ ] ~~(MAYBE) Switch to using a more advanced audio API for preventing weird cutoff when changing/looping audio. It should be seamless.~~ (Saving for actual app)
