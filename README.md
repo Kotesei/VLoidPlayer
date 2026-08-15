@@ -32,19 +32,19 @@
 
 # Things to consider for final build
 
-- [x] Apply the remove from database function to the songs from the upload page as well (Should only apply to the blue color coded files)
-
 - [ ] Create a route to the upload page and player
-
-- [ ] Add an option to remove all from database and a confirmation popup.
 
 - [ ] Fix next in queue and make sure it shows the right state for liked song or not
 
 - [ ] Don't show a queue if there's only one song loaded regardless of loop state
 
-- [ ] Ensure web app works well on mobile devices (Things such as the slider for seeking are bugged on mobile since it most likely uses a different event listener)
+- [ ] Ensure web app works well on mobile devices (Things such as the slider for seeking are bugged on mobile since it most likely uses a different event listener) also sizing should be dynamic and fit properly.
 
 - [ ] Thinking of adding a cool visual animation for when importing songs, will most likely add it after most the app is functional (Need to ensure app runs decent at least on web before considering it but I'll apply it on the actual app)
+
+- [x] ~~Add an option to remove all from database and a confirmation popup.~~
+
+- [x] ~~Apply the remove from database function to the songs from the upload page as well (Should only apply to the blue color coded files)~~
 
 - [x] ~~Option to disable cover art animations~~
 

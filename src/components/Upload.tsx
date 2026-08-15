@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useFiles } from "../context/FileContext";
-import { loadDB, removeFromDB } from "../helpers/database/db";
+import { clearDB, loadDB, removeFromDB } from "../helpers/database/db";
 
 // Starting point for new visitors (Web Version)
 export function Upload() {
@@ -21,6 +21,7 @@ export function Upload() {
   const [isHovering, setIsHovering] = useState<boolean>(false);
   const [showDBNotice, setDBNotice] = useState<boolean>(true);
   const [usingDBFiles, setUsingDBFiles] = useState<boolean>(false);
+  const [isConfirming, setIsConfirming] = useState<boolean>(false);
 
   function handleRemoveFile(target: File) {
     if (db) {
@@ -48,6 +49,12 @@ export function Upload() {
     }
   }
 
+  async function handleClearDB() {
+    await clearDB();
+    setIsConfirming(false);
+    loadDB(setLoadedDBFiles, setLoadedDBMetadata, setDB, false);
+  }
+
   function handleUseDBFiles(load: boolean) {
     if (!showDBNotice) return;
     setDBNotice(false);
@@ -71,13 +78,74 @@ export function Upload() {
 
   return (
     <div className="flex flex-col justify-center items-center w-full gap-5 h-full">
+      {isConfirming && (
+        <div className="absolute w-dvw h-dvh z-1 flex justify-center items-center bg-[#110a1adf]">
+          <div className="px-20 py-5 rounded-xl flex justify-center flex-col gap-3 items-center bg-[#000000f1] border-2 border-white">
+            <p className="text-white">
+              Are you sure you want to delete the database?
+            </p>
+            <div className="text-white flex gap-5">
+              <button
+                className="bg-white px-5 text-black rounded-full"
+                onClick={handleClearDB}
+              >
+                Yes
+              </button>
+              <button
+                className="bg-white px-5 text-black rounded-full"
+                onClick={() => setIsConfirming(false)}
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="p-5 w-[80dvw] h-[50dvh] bg-black border-2 border-white border-dashed rounded-2xl relative flex flex-col gap-5">
+        {db && db.length > 0 && (
+          <div
+            className=" hover:bg-red-400 hover:text-black border-white  absolute bottom-full -translate-y-0.5 border-2 text-white px-2 py-2 border-b-0 right-5 rounded-t-xl flex gap-2 h-10 items-center"
+            onClick={() => setIsConfirming(true)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 512 512"
+              className="ionicon h-full"
+              stroke="white"
+            >
+              <path
+                d="m112 112 20 320c.95 18.49 14.4 32 32 32h184c17.67 0 30.87-13.51 32-32l20-320"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="32px"
+              />
+              <path
+                d="M80 112h352"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeMiterlimit="10"
+                strokeWidth="32px"
+              />
+              <path
+                d="M192 112V72h0a23.93 23.93 0 0 1 24-24h80a23.93 23.93 0 0 1 24 24h0v40M256 176v224M184 176l8 224M328 176l-8 224"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="32px"
+              />
+            </svg>
+            <p className="whitespace-nowrap">Clear Database</p>
+          </div>
+        )}
         <div
           ref={drag_drop_zone}
           id="drag_drop_zone"
           className={`h-full flex-col gap-7 flex ${!files ? "justify-center" : "overflow-y-auto scrollbar-thin scrollbar-thumb-white"} items-center`}
         >
-          {loadedDBFiles && showDBNotice && (
+          {db && db.length > 0 && showDBNotice && (
             <div
               onMouseEnter={() => handleHover(true)}
               onMouseLeave={() => handleHover(false)}
@@ -99,7 +167,6 @@ export function Upload() {
                   No
                 </button>
               </div>
-
               <p>Files Found in Database! Would you like to use those?</p>
             </div>
           )}

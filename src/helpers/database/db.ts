@@ -88,3 +88,10 @@ export async function removeFromDB(song: any): Promise<void> {
     };
   });
 }
+
+export async function clearDB() {
+  const transaction = db.transaction("likedSongs", "readwrite");
+  const store = transaction.objectStore("likedSongs");
+
+  store.clear();
+}
