@@ -10,9 +10,10 @@ interface AnimationData {
   item: AnimationItem | null;
 }
 export function CoverArt() {
-  const { metadata, isPlaying, setMetadata } = useAudio();
+  const { metadata, isPlaying, setMetadata, currentSong } = useAudio();
   const { setUploadState } = useFiles();
-  const coverArtRef = useRef(null);
+  const [width, setWidth] = useState<String | null>(null);
+  const coverArtRef = useRef<HTMLDivElement | null>(null);
   // Will probably move this for speed control of the animation in the context in the future
   const [currentSpeed, setSpeed] = useState<number>(1);
   const [animationVisibility, setAnimationVisibility] = useState(true);
@@ -30,12 +31,14 @@ export function CoverArt() {
   useEffect(() => {
     if (!animationRef.current?.item || !animationRef.current.item.isLoaded)
       return;
+    if (!metadata) return;
     if (animationVisibility) {
       animationRef.current.item.show();
     } else {
       animationRef.current.item.hide();
     }
   }, [animationVisibility, animationRef.current]);
+
   useEffect(() => {
     if (!coverArtRef.current) return;
     // Set an animation for now (Need to change this to be more dynamic)
@@ -52,12 +55,33 @@ export function CoverArt() {
   }, [isPlaying]);
 
   useEffect(() => {
+    return () => handleResize();
+  }, []);
+
+  function handleResize() {
+    setWidth(
+      `${coverArtRef.current?.getBoundingClientRect().width.toFixed(0)}px`,
+    );
+  }
+  useEffect(() => {
+    if (!coverArtRef.current) return;
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [coverArtRef]);
+
+  useEffect(() => {
     if (!coverArtRef.current) return;
     const src = "./src/assets/test2.json";
     const animation = animate(coverArtRef.current, src);
     animationRef.current = { src, item: animation };
     animationRef.current.item?.hide();
-    return () => animation.destroy();
+    return () => {
+      animation.destroy();
+      if (animationRef.current?.item === animation) {
+        animationRef.current = null;
+      }
+    };
   }, [coverArtRef.current]);
 
   useEffect(() => {
@@ -67,7 +91,10 @@ export function CoverArt() {
 
   return (
     <>
-      <div className="flex w-full justify-between h-5.5 items-center mb-2">
+      <div
+        style={{ width: `${width}` }}
+        className="flex justify-between h-5.5 items-center mb-[2dvh]"
+      >
         <Button
           upload
           fill="oklch(82.7% 0.119 306.383)"

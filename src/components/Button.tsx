@@ -48,7 +48,7 @@ export function Button({
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 512 512"
-          className="ionicon h-full"
+          className="ionicon w-[clamp(1.5rem,4vmin,2.5rem)]"
           fill={fill}
           onClick={onClick}
         >
@@ -61,7 +61,7 @@ export function Button({
               onClick={onClick}
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 512 512"
-              className="ionicon h-full"
+              className="ionicon w-[clamp(1.5rem,4vmin,2.5rem)]"
             >
               <circle
                 cx="256"
@@ -86,7 +86,7 @@ export function Button({
               onClick={onClick}
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 512 512"
-              className="ionicon h-full"
+              className="ionicon w-[clamp(1.5rem,4vmin,2.5rem)]"
             >
               <circle
                 cx="256"

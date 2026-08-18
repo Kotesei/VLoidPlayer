@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DBFile, useFiles } from "../context/FileContext";
-import { clearDB, loadDB, readDB, removeFromDB } from "../helpers/database/db";
+import { clearDB, loadDB, removeFromDB } from "../helpers/database/db";
 import { useAudio } from "../context/AudioContext";
 import { handleShuffle } from "../helpers/audio/shuffle";
 
@@ -119,7 +119,7 @@ export function Upload() {
       >
         {db && db.length > 0 && (
           <div
-            className=" hover:bg-red-400 hover:text-black border-white  absolute bottom-full -translate-y-0.5 border-2 text-white px-2 py-2 border-b-0 right-5 rounded-t-xl flex gap-2 h-10 items-center"
+            className=" hover:bg-red-400 hover:text-black border-white  absolute bottom-full -translate-y-0.5 border-2 text-white px-2 py-2 border-b-0 right-5 rounded-t-xl flex gap-2 h-[clamp(2rem,3vmin,8rem)] items-center"
             onClick={() => setIsConfirming(true)}
           >
             <svg
@@ -152,7 +152,9 @@ export function Upload() {
                 strokeWidth="32px"
               />
             </svg>
-            <p className="whitespace-nowrap">Clear Database</p>
+            <p className="text-[clamp(10px,2vmin,15px)] whitespace-nowrap">
+              Clear Database
+            </p>
           </div>
         )}
         <div
@@ -162,7 +164,7 @@ export function Upload() {
             <div
               onMouseEnter={() => handleHover(true)}
               onMouseLeave={() => handleHover(false)}
-              className="shadow-inner shadow-white flex items-center justify-center rounded-t-2xl border-dashed absolute w-[55%] bottom-full h-[10%] text-white"
+              className="shadow-inner shadow-white flex items-center left-5 justify-center rounded-t-xl border-dashed absolute text-center w-[clamp(1rem,35vmin,30rem)] p-2 bottom-full h-12 text-white"
             >
               <div
                 className={`w-full absolute bottom-full h-10 gap-10 flex items-center text-black transition-all duration-300 ${isHovering ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"}`}
@@ -180,7 +182,9 @@ export function Upload() {
                   No
                 </button>
               </div>
-              <p>Liked Songs Found in Database! Would you like to use those?</p>
+              <p className="text-[clamp(10px,2vmin,15px)]">
+                Liked Songs Found in Database! Would you like to use those?
+              </p>
             </div>
           )}
           {files && (
@@ -224,17 +228,17 @@ export function Upload() {
           )}
           {!files && (
             <>
-              <h1 className="text-white text-3xl italic text-center px-30">
+              <h1 className="text-white text-[clamp(1rem,2vmin,5rem)] italic text-center">
                 Please drop/upload any audio files here to proceed or use the
                 sample audio instead.
               </h1>
-              <div className="flex gap-5">
-                <button className="bg-white px-20 py-2 rounded-full text-2xl">
+              <div className="flex gap-2">
+                <button className="bg-white px-5 h-fit py-1 rounded-full text-[clamp(1rem,2vmin,5rem)]">
                   Upload
                 </button>
                 <button
                   onClick={handleLoadRandomSamples}
-                  className="bg-white px-20 py-2 rounded-full text-2xl"
+                  className="bg-white px-5 h-fit whitespace-nowrap py-1 rounded-full  text-[clamp(1rem,2vmin,5rem)]"
                 >
                   Use Samples
                 </button>
@@ -243,7 +247,7 @@ export function Upload() {
           )}
         </div>
         {validFiles && files && (
-          <div className="flex justify-end gap-3">
+          <div className="flex gap-3 flex-col w-fit self-end items-end">
             <div className="flex flex-col">
               {db && usingDBFiles && (
                 <p className="text-blue-300 text-end text-sm leading-4">
@@ -263,7 +267,7 @@ export function Upload() {
             {validFiles.length > 0 && (
               <button
                 onClick={handleLoadValidFiles}
-                className="bg-amber-50 px-8 pb-1 justify-center items-center rounded-xl w-fit flex text-2xl "
+                className="bg-amber-50 w-full px-5 h-fit justify-center items-center rounded-xl flex text-[clamp(1rem,3vmin,1.5rem)] whitespace-nowrap"
               >
                 {validFiles.length === 1 ? "Import File" : "Import Files"}
               </button>
