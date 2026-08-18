@@ -13,7 +13,6 @@ import { handleShuffle } from "./helpers/audio/shuffle";
 import { handleLike } from "./helpers/database/likeSong";
 import { Upload } from "./components/Upload";
 import { useFiles } from "./context/FileContext";
-import { loadDB } from "./helpers/database/db";
 
 function App() {
   const {
@@ -22,7 +21,6 @@ function App() {
     currentSong,
     audio,
     loopState,
-    trackList,
     setIsPlaying,
     setIsReset,
     setMetadata,
@@ -32,12 +30,7 @@ function App() {
     isShuffling,
     setIsShuffling,
   } = useAudio();
-  const {
-    uploadState,
-    loadedDBMetadata,
-    setLoadedDBFiles,
-    setLoadedDBMetadata,
-  } = useFiles();
+  const { uploadState, db, setDB, validFiles } = useFiles();
   return (
     <>
       {uploadState && <Upload />}
@@ -58,24 +51,18 @@ function App() {
                   onClick={() =>
                     handleShuffle({
                       currentSong,
-                      trackList,
+                      validFiles,
                       isShuffling,
                       setIsShuffling,
-                      metadata,
                     })
                   }
                 />
                 <Button
                   like
-                  metadata={metadata}
-                  loadedDBMetadata={loadedDBMetadata}
+                  file={currentSong}
+                  db={db}
                   likeSong={() => {
-                    handleLike(
-                      metadata,
-                      currentSong,
-                      setLoadedDBFiles,
-                      setLoadedDBMetadata,
-                    );
+                    handleLike(metadata, currentSong, setDB);
                   }}
                   stroke="oklch(82.7% 0.119 306.383)"
                   fill="oklch(82.7% 0.119 306.383)"
@@ -99,7 +86,7 @@ function App() {
                       audio,
                       setIsReset,
                       currentSong,
-                      trackList,
+                      validFiles,
                       setMetadata,
                       setCurrentSong,
                       isPlaying,
@@ -124,7 +111,7 @@ function App() {
                       currentSong,
                       audio,
                       loopState,
-                      trackList,
+                      validFiles,
                       setIsPlaying,
                       setIsReset,
                       setMetadata,

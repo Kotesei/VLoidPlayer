@@ -7,7 +7,7 @@ interface Next {
   currentSong: File | null;
   audio: HTMLAudioElement | null;
   loopState: string;
-  trackList: File[] | null;
+  validFiles: File[] | null;
   setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   setMetadata: React.Dispatch<React.SetStateAction<SongMetaData | null>>;
@@ -22,7 +22,7 @@ export async function handleNextTrack(
     currentSong,
     audio,
     loopState,
-    trackList,
+    validFiles,
     setIsPlaying,
     setIsReset,
     setMetadata,
@@ -30,7 +30,7 @@ export async function handleNextTrack(
     isShuffling,
   }: Next,
 ) {
-  if (!trackList) return;
+  if (!validFiles) return;
   if (!metadata) return;
   if (!currentSong) return;
   if (!audio) return;
@@ -48,7 +48,7 @@ export async function handleNextTrack(
     ? isShuffling.shuffledTrackList[
         isShuffling.shuffledTrackList.indexOf(currentSong) + 1
       ]
-    : trackList[trackList.indexOf(currentSong) + 1];
+    : validFiles[validFiles.indexOf(currentSong) + 1];
 
   let song;
 
@@ -58,12 +58,12 @@ export async function handleNextTrack(
       handleEnd({ setIsPlaying, audio, setIsReset });
       return;
     } else {
-      song = isShuffling ? isShuffling.shuffledTrackList[0] : trackList[0];
+      song = isShuffling ? isShuffling.shuffledTrackList[0] : validFiles[0];
     }
   } else {
     song = nextTrack;
   }
-  getMetaData(song, setMetadata);
+  getMetaData(song, { setMetadata });
   setCurrentSong(song);
   setIsPlaying(true);
   audio.src = URL.createObjectURL(song);

@@ -1,4 +1,5 @@
 import { ShuffledTracks, SongMetaData } from "../context/AudioContext";
+import { DBFile } from "../context/FileContext";
 
 export function Button({
   shuffle,
@@ -13,8 +14,9 @@ export function Button({
   likeSong,
   isPlaying,
   isShuffling,
-  loadedDBMetadata,
-  metadata,
+  db,
+  file,
+  nextLike,
   loop,
   animation,
   visible,
@@ -32,8 +34,9 @@ export function Button({
   likeSong?: () => any;
   isPlaying?: boolean;
   isShuffling?: ShuffledTracks;
-  loadedDBMetadata?: SongMetaData[] | null;
-  metadata?: SongMetaData | null;
+  db?: DBFile[] | null;
+  file?: File | null;
+  nextLike?: boolean;
   loop?: string;
   animation?: boolean;
   visible?: boolean;
@@ -129,11 +132,8 @@ export function Button({
         </svg>
       )}
       {like &&
-      loadedDBMetadata?.find(
-        (fileMetadata) =>
-          fileMetadata.album === metadata?.album &&
-          fileMetadata.song_name === metadata?.song_name &&
-          fileMetadata.artist === metadata?.artist,
+      db?.find(
+        (db) => db.file.name === file?.name && db.file.size === file.size,
       ) ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -152,6 +152,44 @@ export function Button({
         </svg>
       ) : (
         like && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+            className="ionicon w-[clamp(1.5rem,4vmin,2.5rem)]"
+            onClick={likeSong}
+          >
+            <path
+              d="M352.92 80C288 80 256 144 256 144s-32-64-96.92-64c-52.76 0-94.54 44.14-95.08 96.81-1.1 109.33 86.73 187.08 183 252.42a16 16 0 0 0 18 0c96.26-65.34 184.09-143.09 183-252.42-.54-52.67-42.32-96.81-95.08-96.81"
+              stroke={stroke}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="32px"
+            />
+          </svg>
+        )
+      )}
+      {nextLike &&
+      db?.find(
+        (db) => db.file.name === file?.name && db.file.size === file.size,
+      ) ? (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 512 512"
+          className="ionicon w-[clamp(1.5rem,4vmin,2.5rem)]"
+          onClick={likeSong}
+        >
+          <path
+            d="M352.92 80C288 80 256 144 256 144s-32-64-96.92-64c-52.76 0-94.54 44.14-95.08 96.81-1.1 109.33 86.73 187.08 183 252.42a16 16 0 0 0 18 0c96.26-65.34 184.09-143.09 183-252.42-.54-52.67-42.32-96.81-95.08-96.81"
+            fill={fill}
+            stroke={fill}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="32px"
+          />
+        </svg>
+      ) : (
+        nextLike && (
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 512 512"

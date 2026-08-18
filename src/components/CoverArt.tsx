@@ -3,13 +3,15 @@ import { animate } from "../helpers/animate";
 import { AnimationItem } from "lottie-web";
 import { useAudio } from "../context/AudioContext";
 import { Button } from "./Button";
+import { useFiles } from "../context/FileContext";
 
 interface AnimationData {
   src: string | null;
   item: AnimationItem | null;
 }
 export function CoverArt() {
-  const { metadata, isPlaying } = useAudio();
+  const { metadata, isPlaying, setMetadata } = useAudio();
+  const { setUploadState } = useFiles();
   const coverArtRef = useRef(null);
   // Will probably move this for speed control of the animation in the context in the future
   const [currentSpeed, setSpeed] = useState<number>(1);
@@ -22,7 +24,8 @@ export function CoverArt() {
   }
 
   async function goToUploadPage() {
-    console.log("uh");
+    setUploadState(true);
+    setMetadata(null);
   }
   useEffect(() => {
     if (!animationRef.current?.item || !animationRef.current.item.isLoaded)
@@ -50,12 +53,12 @@ export function CoverArt() {
 
   useEffect(() => {
     if (!coverArtRef.current) return;
-    const src = "./src/assets/test.json";
+    const src = "./src/assets/test2.json";
     const animation = animate(coverArtRef.current, src);
     animationRef.current = { src, item: animation };
     animationRef.current.item?.hide();
     return () => animation.destroy();
-  }, []);
+  }, [coverArtRef.current]);
 
   useEffect(() => {
     if (!animationVisibility) return;

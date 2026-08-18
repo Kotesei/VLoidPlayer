@@ -5,7 +5,7 @@ interface Previous {
   metadata: SongMetaData | null;
   currentSong: File | null;
   audio: HTMLAudioElement | null;
-  trackList: File[];
+  validFiles: File[] | null;
   setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   setMetadata: React.Dispatch<React.SetStateAction<SongMetaData | null>>;
@@ -19,13 +19,14 @@ export async function handlePreviousTrack({
   audio,
   setIsReset,
   currentSong,
-  trackList,
+  validFiles,
   setMetadata,
   setCurrentSong,
   isPlaying,
   setIsPlaying,
   isShuffling,
 }: Previous) {
+  if (!validFiles) return;
   if (!metadata) return;
   if (!audio) return;
   if (audio.currentTime > 2) {
@@ -37,11 +38,11 @@ export async function handlePreviousTrack({
       ? isShuffling.shuffledTrackList[
           isShuffling.shuffledTrackList.indexOf(currentSong) - 1
         ]
-      : trackList[trackList.indexOf(currentSong) - 1];
+      : validFiles[validFiles.indexOf(currentSong) - 1];
     if (prevTrack) {
       audio.src = "";
       setIsReset(false);
-      getMetaData(prevTrack, setMetadata);
+      getMetaData(prevTrack, { setMetadata });
       setCurrentSong(prevTrack);
       audio.src = URL.createObjectURL(prevTrack);
       if (!isPlaying) setIsPlaying(true);

@@ -10,6 +10,8 @@ import { shuffleArray } from "../helpers/shuffleArray";
 import { loadDB } from "../helpers/database/db";
 import { SongMetaData } from "./AudioContext";
 interface FileContextType {
+  usingDBFiles: boolean;
+  setUsingDBFiles: React.Dispatch<React.SetStateAction<boolean>>;
   uploadState: boolean;
   setUploadState: React.Dispatch<React.SetStateAction<boolean>>;
   files: File[] | null;
@@ -18,15 +20,9 @@ interface FileContextType {
   handleLoadRandomSamples: () => void;
   validFiles: File[] | null;
   db: DBFile[] | null;
-  loadedDBFiles: File[] | null;
-  loadedDBMetadata: SongMetaData[] | null;
-  setLoadedDBFiles: React.Dispatch<React.SetStateAction<File[] | null>>;
   setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>>;
-  setLoadedDBMetadata: React.Dispatch<
-    React.SetStateAction<SongMetaData[] | null>
-  >;
 }
-interface DBFile {
+export interface DBFile {
   metadata: SongMetaData;
   file: File;
 }
@@ -34,16 +30,15 @@ interface DBFile {
 const FileContext = createContext<FileContextType | undefined>(undefined);
 
 export function TracksProvider({ children }: { children: ReactNode }) {
+  const [usingDBFiles, setUsingDBFiles] = useState<boolean>(false);
   const [uploadState, setUploadState] = useState(true);
   const [files, setFiles] = useState<File[] | null>(null);
   const [validFiles, setValidFiles] = useState<null | File[]>(null);
-  const [loadedDBFiles, setLoadedDBFiles] = useState<File[] | null>(null);
-  const [loadedDBMetadata, setLoadedDBMetadata] = useState<
-    SongMetaData[] | null
-  >(null);
+
   const drag_drop_zone = useRef<HTMLInputElement>(null);
   const [db, setDB] = useState<DBFile[] | null>(null);
   useEffect(() => {
+    if (!uploadState) return;
     if (!drag_drop_zone) return;
     const el = drag_drop_zone.current;
     if (!el) return;
@@ -86,7 +81,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
       el.removeEventListener("dragleave", dragLeave);
       el.removeEventListener("drop", dropFiles);
     };
-  }, [drag_drop_zone, files]);
+  }, [drag_drop_zone, files, uploadState]);
 
   // Checks whenever files are added and filters them by regex rule to determine if it's an audio file
   useEffect(() => {
@@ -139,7 +134,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   // For debugging purposes or maybe page loading [Could be useful for removing audio that is stored in the database if user wishes to remove songs, or even skipping the upload page sequence completely]
   useEffect(() => {
     return () => {
-      loadDB(setLoadedDBFiles, setLoadedDBMetadata, setDB, false);
+      loadDB(setDB, false);
     };
   }, []);
 
@@ -163,12 +158,10 @@ export function TracksProvider({ children }: { children: ReactNode }) {
         drag_drop_zone,
         handleLoadRandomSamples,
         validFiles,
-        loadedDBFiles,
-        loadedDBMetadata,
-        setLoadedDBFiles,
-        setLoadedDBMetadata,
         setDB,
         db,
+        usingDBFiles,
+        setUsingDBFiles,
       }}
     >
       {children}

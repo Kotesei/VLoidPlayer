@@ -1,7 +1,7 @@
 import { useAudio } from "../context/AudioContext";
 
 export function SongDetails() {
-  const { metadata } = useAudio();
+  const { metadata, currentSong } = useAudio();
   return (
     <div
       style={{
@@ -11,12 +11,12 @@ export function SongDetails() {
       className="minh-[10dvh] w-full"
       id="navigation"
     >
-      <div className="text-purple-300 flex-1 flex flex-col h-full justify-center">
+      <div className="text-purple-300 text-center flex-1 flex flex-col h-full justify-center">
         <h2 className="text-[9px] leading-2.5 flex justify-center italic">
           {metadata?.artist ?? "Unknown"}
         </h2>
         <h2 className="text-xs flex  leading-3.5 justify-center">
-          {metadata?.song_name ?? "Unknown"}
+          {metadata?.song_name ?? `${currentSong?.name}`}
         </h2>
         <h2 className="text-[9px] flex leading-3.5 justify-center font-medium">
           {metadata?.album ?? "Unknown"}

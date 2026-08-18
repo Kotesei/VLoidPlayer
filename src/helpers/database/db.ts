@@ -52,25 +52,14 @@ export async function readDB(): Promise<DBFile[]> {
 }
 
 export async function loadDB(
-  setDBFiles: React.Dispatch<React.SetStateAction<File[] | null>>,
-  setDBMetadata: React.Dispatch<React.SetStateAction<SongMetaData[] | null>>,
-  setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>> | null,
+  setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>>,
   read: boolean,
 ) {
   const dbFiles = await readDB();
-  if (setDB) setDB(dbFiles);
   if (read) {
-    const files: File[] = [];
-    const metadata: SongMetaData[] = [];
-    dbFiles.map((dbFile) => files.push(dbFile.file));
-    dbFiles.map((dbFile) => metadata.push(dbFile.metadata));
-    setDBFiles(files);
-    setDBMetadata(metadata);
+    setDB(dbFiles);
   } else {
-    dbFiles.map((dbFile) => {
-      setDBFiles((prev) => [...(prev || []), dbFile.file]);
-      setDBMetadata((prev) => [...(prev || []), dbFile.metadata]);
-    });
+    setDB((prev) => [...(prev || []), ...dbFiles]);
   }
 }
 

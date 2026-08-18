@@ -1,4 +1,5 @@
 import { SongMetaData } from "../../context/AudioContext";
+import { DBFile } from "../../context/FileContext";
 
 import { db, loadDB, removeFromDB } from "./db";
 
@@ -6,8 +7,7 @@ import { db, loadDB, removeFromDB } from "./db";
 export async function handleLike(
   metadata: SongMetaData | null,
   file: File | null,
-  setDBFiles: React.Dispatch<React.SetStateAction<File[] | null>>,
-  setDBMetadata: React.Dispatch<React.SetStateAction<SongMetaData[] | null>>,
+  setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>>,
 ) {
   if (!metadata) return;
   if (!file) return;
@@ -18,7 +18,7 @@ export async function handleLike(
 
   idQuery.onsuccess = async () => {
     const songFound = idQuery.result.find(
-      (query) => query.metadata.song_name === metadata.song_name,
+      (query) => query.file.name === file.name && query.file.size === file.size,
     );
     // Run unlike logic here
     if (songFound) {
@@ -36,6 +36,6 @@ export async function handleLike(
         file,
       });
     }
-    loadDB(setDBFiles, setDBMetadata, null, true);
+    loadDB(setDB, true);
   };
 }

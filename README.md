@@ -32,15 +32,17 @@
 
 # Things to consider for final build
 
-- [ ] Create a route to the upload page and player
+- [ ] More interactive Queue, should allow user to move songs around and change the play order or play whichever song and like/unlike from the list
 
-- [ ] Fix next in queue and make sure it shows the right state for liked song or not
-
-- [ ] Don't show a queue if there's only one song loaded regardless of loop state
+- [ ] Playlists
 
 - [ ] Ensure web app works well on mobile devices (Things such as the slider for seeking are bugged on mobile since it most likely uses a different event listener) also sizing should be dynamic and fit properly.
 
 - [ ] Thinking of adding a cool visual animation for when importing songs, will most likely add it after most the app is functional (Need to ensure app runs decent at least on web before considering it but I'll apply it on the actual app)
+
+- [x] ~~Fix next in queue and make sure it shows the right state for liked song or not~~
+
+- [x] ~~Create a route to the upload page and player~~
 
 - [x] ~~Add an option to remove all from database and a confirmation popup.~~
 
@@ -57,6 +59,8 @@
 - [x] ~~Make sure nothing but valid audio sources are added (It's currently possible to throw in files that aren't even audio)~~
 
 - [x] ~~Do some tests in the network tab and make sure everything only needs to render once. Things like the animation or the cover art can render as much as needed since those are always changing. I noticed icons like svgs on click are rerendering and while it's very little impact in terms of size when rendering, I rather eliminate rerendering if it is not required.~~ (Most of the rendering seems to be low enough to have low impact and is mostly relying on Blobs)
+
+- [ ] ~~Don't show a queue if there's only one song loaded regardless of loop state~~ This seems extra, skipping.
 
 - [ ] ~~Consider multiple artists involved as well~~ Not working on this, seems extra for web version (Saving it for actual app purposes instead)
 
