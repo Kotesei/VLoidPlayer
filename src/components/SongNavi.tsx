@@ -9,13 +9,14 @@ interface SongTime {
 }
 
 export function SongNavi() {
-  const { audio, isPlaying, isReset, setIsReset, trackList } = useAudio();
+  const { audio, isPlaying, isReset, setIsReset } = useAudio();
   const sliderRef = useRef<HTMLSpanElement>(null);
   const [sliderPos, setSliderPos] = useState<number>(0);
   const [isSeeking, setIsSeeking] = useState<boolean>(false);
   const [songTime, setSongTime] = useState<SongTime | null>(null);
 
   function handleSeek(e: number[]) {
+    if (!songTime) return;
     if (!audio) return;
     setIsSeeking(true);
     setSliderPos(e[0]);
@@ -33,10 +34,14 @@ export function SongNavi() {
       const meterCompletion = (Number(value) / 100) * audio.duration;
       audio.currentTime = +meterCompletion;
       const currentTime = formatTime(audio.currentTime);
-      setSongTime((prev) => {
-        if (!prev) return prev;
-        return { ...prev, currentTime };
-      });
+      if (value === "100") {
+        audio.dispatchEvent(new Event("ended"));
+      } else {
+        setSongTime((prev) => {
+          if (!prev) return prev;
+          return { ...prev, currentTime };
+        });
+      }
     }
   }, [isSeeking]);
 

@@ -7,7 +7,6 @@ import {
   ReactNode,
   useCallback,
 } from "react";
-import { getMetaData } from "../helpers/metadata";
 import { handleNextTrack } from "../helpers/audio/next";
 import { DBFile, useFiles } from "./FileContext";
 import { IPicture } from "music-metadata";
@@ -26,11 +25,8 @@ interface AudioContextType {
   isPlaying: boolean;
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
 
-  currentSong: File | null;
-  setCurrentSong: React.Dispatch<React.SetStateAction<File | null>>;
-
-  metadata: SongMetaData | null;
-  setMetadata: React.Dispatch<React.SetStateAction<SongMetaData | null>>;
+  currentSong: DBFile | null;
+  setCurrentSong: React.Dispatch<React.SetStateAction<DBFile | null>>;
 
   nextSong: DBFile | null;
   setNextSong: React.Dispatch<React.SetStateAction<DBFile | null>>;
@@ -50,8 +46,8 @@ interface AudioContextType {
 }
 
 export interface ShuffledTracks {
-  validFiles: File[];
-  shuffledTrackList: File[];
+  validFiles: DBFile[];
+  shuffledTrackList: DBFile[];
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -65,7 +61,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     if (!audio) return;
     if (uploadState) return;
 
-    const firstTrack = validFiles[0];
+    const firstTrack = validFiles[0].file;
     audio.src = URL.createObjectURL(firstTrack);
   }, [validFiles, uploadState]);
 
@@ -73,9 +69,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   // check/set when user is playing song
   const [isPlaying, setIsPlaying] = useState(false);
   // currentsong is just file location of the song
-  const [currentSong, setCurrentSong] = useState<File | null>(null);
-  // holds the data such as the cover art, song, artist, album, song duration etc
-  const [metadata, setMetadata] = useState<SongMetaData | null>(null);
+  const [currentSong, setCurrentSong] = useState<DBFile | null>(null);
   // same as metadata but contains the next set of data
   // Will probably have to make something just like this for a queue system (Skipping current and next song to avoid duplicate calls)
   const [nextSong, setNextSong] = useState<DBFile | null>(null);
@@ -96,18 +90,16 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const onEnded = useCallback(
     (e: Event) =>
       handleNextTrack(e, true, {
-        metadata,
         currentSong,
         audio,
         loopState,
         validFiles,
         setIsPlaying,
         setIsReset,
-        setMetadata,
         setCurrentSong,
         isShuffling,
       }),
-    [loopState, metadata, isShuffling],
+    [loopState, currentSong, isShuffling],
   );
 
   // Runs after song ends
@@ -119,7 +111,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   // Checks if there is metadata [Debugging]
   useEffect(() => {
-    if (!metadata) return;
     if (!audio) return;
     if (!currentSong) return;
     if (!validFiles) return;
@@ -127,11 +118,15 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     //////////////////////////////////
 
     // Set the next song file name.
+    const currentIndex = validFiles.findIndex((item) => item === currentSong);
+
     const nextTrack = isShuffling
       ? isShuffling.shuffledTrackList[
-          isShuffling.shuffledTrackList.indexOf(currentSong) + 1
+          isShuffling.shuffledTrackList.findIndex(
+            (item) => item === currentSong,
+          ) + 1
         ]
-      : validFiles[validFiles.indexOf(currentSong) + 1];
+      : validFiles[currentIndex + 1];
     let song;
 
     // Checks if there is another track afterwards, if not then it will just set the next track to be the first song in the list.
@@ -140,7 +135,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
       if (loopState === "list") {
         // If the loop mode is set to "list", it will update the Queue to show the first song of a list be the next song.
-        getMetaData(song, { setNextSong });
+        // getMetaData(song, { setNextSong });
       } else {
         // If not list mode then there will be no next song in the Queue.
         setNextSong(null);
@@ -151,13 +146,19 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
     //////////////////////////////////
     //Gets the metadata for the next song (ONLY if there is a next song!!) once current metadata is found.
-    if (nextTrack) getMetaData(song, { setNextSong });
+    // if (nextTrack) getMetaData(song, { setNextSong });
+    console.log(nextTrack);
+    console.log(validFiles);
 
-    document.title = metadata.song_name ?? "VLoid Player";
     // Go to next track in the queue once song ends
     audio.addEventListener("ended", onEnded);
     return () => audio.removeEventListener("ended", onEnded);
-  }, [metadata, isShuffling]);
+  }, [currentSong, isShuffling]);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+    document.title = currentSong?.metadata.song_name ?? "VLoid Player";
+  }, [currentSong, isPlaying]);
 
   // Do stuff if song is playing
   useEffect(() => {
@@ -167,7 +168,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       audio?.pause();
     } else if (isPlaying) {
       // Runs the function to get the metadata for a song. Args: (song_location, metadata_state) only if there is no metadata
-      if (!metadata) getMetaData(currentSong, { setMetadata });
+      // if (!metadata) getMetaData(currentSong.file, { setMetadata });
       // Play song
       audio?.play();
     }
@@ -177,22 +178,27 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   // Starting State (This is mostly for debugging) //
   useEffect(() => {
     if (!validFiles) return;
+    if (uploadState) return;
     setCurrentSong(validFiles[0]);
     // setUploadState(false);
-  }, [validFiles]);
+  }, [validFiles, uploadState]);
   ///////////////////////////
 
   // This is for any loop state changes
   useEffect(() => {
     if (!currentSong) return;
     if (!validFiles) return;
-    if (!metadata) return;
+    const currentIndex = validFiles.findIndex((item) => {
+      const file = "file" in item.file ? item.file : item;
+
+      return file === currentSong;
+    });
     audio?.removeEventListener("ended", onEnded);
     const nextTrack = isShuffling
       ? isShuffling.shuffledTrackList[
           isShuffling.shuffledTrackList.indexOf(currentSong) + 1
         ]
-      : validFiles[validFiles.indexOf(currentSong) + 1];
+      : validFiles[currentIndex + 1];
     switch (loopState) {
       // Loop List
       case "list":
@@ -200,7 +206,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           const firstSongOfList = isShuffling
             ? isShuffling.shuffledTrackList[0]
             : validFiles[0];
-          getMetaData(firstSongOfList, { setNextSong });
+
+          // getMetaData(firstSongOfList, { setNextSong });
         }
         break;
       // Single Song
@@ -228,8 +235,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           setIsPlaying,
           currentSong,
           setCurrentSong,
-          metadata,
-          setMetadata,
           nextSong,
           setNextSong,
           audio,

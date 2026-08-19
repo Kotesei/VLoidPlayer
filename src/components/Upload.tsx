@@ -41,7 +41,11 @@ export function Upload() {
 
   function handleLoadValidFiles() {
     if (!validFiles) return;
-    setFiles(validFiles);
+
+    const files = validFiles.map((item) =>
+      item instanceof File ? item : item.file,
+    );
+    setFiles(files);
     setUploadState(false);
     if (isShuffling) {
       handleShuffle({

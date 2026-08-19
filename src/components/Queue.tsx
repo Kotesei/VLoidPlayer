@@ -5,9 +5,9 @@ import { handleLike } from "../helpers/database/likeSong";
 import { Button } from "./Button";
 
 export function Queue() {
-  const { nextSong, currentSong, metadata, loopState } = useAudio();
+  const { nextSong, currentSong, loopState } = useAudio();
   const queue = useRef(null);
-  const { db, setDB } = useFiles();
+  const { db, setDB, validFiles } = useFiles();
   const [showingQueue, setShowingQueue] = useState<boolean>(false);
   function handleShowQueue() {
     setShowingQueue(!showingQueue);
@@ -16,6 +16,7 @@ export function Queue() {
   useEffect(() => {
     if (!showingQueue) return;
     console.log(queue);
+    console.log(validFiles);
   }, [showingQueue]);
 
   return (
@@ -32,30 +33,37 @@ export function Queue() {
         >
           {showingQueue && (
             <div className="w-full h-full rounded-t-xl shadow-inner shadow-amber-50 border-t-red-200 border-t-2 text-white">
-              <div className="px-2 text-xs pt-3 w-full h-full flex flex-col gap-2">
-                <div className="bg-[#000c32a5] h-15 p-3 rounded-lg border-white border-2 flex justify-between items-center gap-5">
-                  <div>
-                    <p>{metadata?.song_name ?? currentSong?.name}</p>
-                    {metadata?.artist && (
-                      <p className="text-gray-400">{metadata?.artist}</p>
-                    )}
-                  </div>
-                  <p>{metadata?.duration}</p>
-                </div>
-                {nextSong && (
-                  <div className="bg-[#000c32a5] p-3 rounded-lg border-white flex justify-between items-center border-2 gap-5">
+              {currentSong?.metadata && (
+                <div className="px-2 text-xs pt-3 w-full h-full flex flex-col gap-2">
+                  <div className="bg-[#000c32a5] h-15 p-3 rounded-lg border-white border-2 flex justify-between items-center gap-5">
                     <div>
                       <p>
-                        {nextSong?.metadata?.song_name ?? nextSong?.file.name}
+                        {currentSong?.metadata?.song_name ??
+                          currentSong?.file?.name}
                       </p>
-                      <p className="text-gray-400">
-                        {nextSong?.metadata?.artist}
-                      </p>
+                      {currentSong?.metadata?.artist && (
+                        <p className="text-gray-400">
+                          {currentSong?.metadata?.artist}
+                        </p>
+                      )}
                     </div>
-                    <p>{nextSong?.metadata?.duration}</p>
+                    <p>{currentSong?.metadata?.duration}</p>
                   </div>
-                )}
-              </div>
+                  {nextSong && (
+                    <div className="bg-[#000c32a5] p-3 rounded-lg border-white flex justify-between items-center border-2 gap-5">
+                      <div>
+                        <p>
+                          {nextSong?.metadata?.song_name ?? nextSong?.file.name}
+                        </p>
+                        <p className="text-gray-400">
+                          {nextSong?.metadata?.artist}
+                        </p>
+                      </div>
+                      <p>{nextSong?.metadata?.duration}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <div
@@ -109,19 +117,21 @@ export function Queue() {
             <p className="text-[9px] w-fit text-center ">Up Next</p>
             {loopState === "single" ? (
               <>
-                <p className="text-center">{metadata?.song_name}</p>
+                <p className="text-center">
+                  {currentSong?.metadata?.song_name}
+                </p>
               </>
             ) : (
               <>
-                {metadata && nextSong && (
+                {currentSong?.metadata && nextSong && (
                   <div className="max-w-full w-fit self-center">
                     <div className="absolute translate-y-1/2 bottom-1/2 right-[clamp(1rem,1vmin,5rem)]">
                       <Button
                         nextLike
-                        file={nextSong.file}
+                        file={nextSong}
                         db={db}
                         likeSong={() => {
-                          handleLike(nextSong.metadata, nextSong.file, setDB);
+                          handleLike(nextSong, setDB);
                         }}
                         stroke="oklch(82.7% 0.119 306.383)"
                         fill="oklch(82.7% 0.119 306.383)"
@@ -132,12 +142,12 @@ export function Queue() {
                     </p>
                   </div>
                 )}
-                {!metadata && (
+                {!currentSong?.metadata && (
                   <p className="text-center">
                     Nothing has been added to the Queue
                   </p>
                 )}
-                {metadata && currentSong && !nextSong && (
+                {currentSong?.metadata && currentSong && !nextSong && (
                   <p className="text-center">End Of List</p>
                 )}
               </>

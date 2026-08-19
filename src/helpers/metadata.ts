@@ -1,18 +1,7 @@
 import { parseBlob } from "music-metadata";
 import { formatTime } from "./formatTime";
-import { SongMetaData } from "../context/AudioContext";
-import { DBFile } from "../context/FileContext";
 
-export async function getMetaData(
-  song: File,
-  {
-    setNextSong,
-    setMetadata,
-  }: {
-    setNextSong?: React.Dispatch<React.SetStateAction<DBFile | null>>;
-    setMetadata?: React.Dispatch<React.SetStateAction<SongMetaData | null>>;
-  },
-) {
+export async function getMetaData(song: File) {
   // Get metadata
   const metadata = await parseBlob(song);
   const songMetaData = {
@@ -35,12 +24,5 @@ export async function getMetaData(
   if (songMetaData.coverArt) {
     songMetaData.coverArtURL = createBlob(songMetaData.coverArt);
   }
-
-  if (setNextSong) {
-    setNextSong({ file: song, metadata: songMetaData });
-  }
-
-  if (setMetadata) {
-    setMetadata(songMetaData);
-  }
+  return songMetaData;
 }

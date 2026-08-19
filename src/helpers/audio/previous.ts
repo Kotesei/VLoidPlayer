@@ -1,50 +1,47 @@
-import { ShuffledTracks, SongMetaData } from "../../context/AudioContext";
-import { getMetaData } from "../metadata";
+import { ShuffledTracks } from "../../context/AudioContext";
+import { DBFile } from "../../context/FileContext";
 
 interface Previous {
-  metadata: SongMetaData | null;
-  currentSong: File | null;
+  currentSong: DBFile | null;
   audio: HTMLAudioElement | null;
-  validFiles: File[] | null;
+  validFiles: DBFile[] | null;
   setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
-  setMetadata: React.Dispatch<React.SetStateAction<SongMetaData | null>>;
-  setCurrentSong: React.Dispatch<React.SetStateAction<File | null>>;
+  setCurrentSong: React.Dispatch<React.SetStateAction<DBFile | null>>;
   isPlaying: boolean;
   isShuffling: ShuffledTracks | false;
 }
 
 export async function handlePreviousTrack({
-  metadata,
   audio,
   setIsReset,
   currentSong,
   validFiles,
-  setMetadata,
   setCurrentSong,
   isPlaying,
   setIsPlaying,
   isShuffling,
 }: Previous) {
   if (!validFiles) return;
-  if (!metadata) return;
   if (!audio) return;
   if (audio.currentTime > 2) {
     audio.currentTime = 0;
     setIsReset(true);
   } else {
+    const currentIndex = validFiles.findIndex((item) => item === currentSong);
     if (!currentSong) return;
     const prevTrack = isShuffling
       ? isShuffling.shuffledTrackList[
-          isShuffling.shuffledTrackList.indexOf(currentSong) - 1
+          isShuffling.shuffledTrackList.findIndex(
+            (item) => item === currentSong,
+          ) + 1
         ]
-      : validFiles[validFiles.indexOf(currentSong) - 1];
+      : validFiles[currentIndex - 1];
     if (prevTrack) {
       audio.src = "";
       setIsReset(false);
-      getMetaData(prevTrack, { setMetadata });
       setCurrentSong(prevTrack);
-      audio.src = URL.createObjectURL(prevTrack);
+      audio.src = URL.createObjectURL(prevTrack.file);
       if (!isPlaying) setIsPlaying(true);
     } else {
       // This is when trying to go to previous track on the start of a list

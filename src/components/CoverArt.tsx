@@ -10,8 +10,9 @@ interface AnimationData {
   item: AnimationItem | null;
 }
 export function CoverArt() {
-  const { metadata, isPlaying, setMetadata, currentSong } = useAudio();
+  const { isPlaying, currentSong } = useAudio();
   const { setUploadState } = useFiles();
+  const [initialized, setInitialized] = useState(false);
   const [width, setWidth] = useState<String | null>(null);
   const coverArtRef = useRef<HTMLDivElement | null>(null);
   // Will probably move this for speed control of the animation in the context in the future
@@ -26,12 +27,12 @@ export function CoverArt() {
 
   async function goToUploadPage() {
     setUploadState(true);
-    setMetadata(null);
   }
+
   useEffect(() => {
     if (!animationRef.current?.item || !animationRef.current.item.isLoaded)
       return;
-    if (!metadata) return;
+    if (!currentSong?.metadata) return;
     if (animationVisibility) {
       animationRef.current.item.show();
     } else {
@@ -49,6 +50,7 @@ export function CoverArt() {
       // Stops the animation
       animationRef.current?.item?.setSpeed(0);
     } else {
+      setInitialized(true);
       // Plays the animation at whatever the speed set was
       animationRef.current?.item?.setSpeed(currentSpeed);
     }
@@ -71,23 +73,25 @@ export function CoverArt() {
   }, [coverArtRef]);
 
   useEffect(() => {
+    if (!animationVisibility) return;
+    if (!initialized) return;
     if (!coverArtRef.current) return;
+    if (animationRef.current?.src) return;
     const src = "./src/assets/test2.json";
     const animation = animate(coverArtRef.current, src);
     animationRef.current = { src, item: animation };
-    animationRef.current.item?.hide();
     return () => {
       animation.destroy();
       if (animationRef.current?.item === animation) {
         animationRef.current = null;
       }
     };
-  }, [coverArtRef.current]);
+  }, [coverArtRef.current, initialized, animationVisibility]);
 
-  useEffect(() => {
-    if (!animationVisibility) return;
-    if (metadata) animationRef.current?.item?.show();
-  }, [metadata]);
+  // useEffect(() => {
+  //   if (!animationVisibility) return;
+  //   if (currentSong?.metadata) animationRef.current?.item?.show();
+  // }, [currentSong]);
 
   return (
     <>
@@ -111,7 +115,9 @@ export function CoverArt() {
       </div>
       <div
         ref={coverArtRef}
-        style={{ backgroundImage: `url(${metadata?.coverArtURL})` }}
+        style={{
+          backgroundImage: `url(${currentSong?.metadata?.coverArtURL})`,
+        }}
         className="border-purple-300 border-2 min-w-50 min-h-50 aspect-square h-[65dvw] bg-[url] bg-cover pointer-events-none"
         id="coverArt"
       ></div>

@@ -1,25 +1,20 @@
-import { SongMetaData } from "../../context/AudioContext";
 import { DBFile } from "../../context/FileContext";
 
 import { db, loadDB, removeFromDB } from "./db";
 
 //////////// IndexedDB ////////////
 export async function handleLike(
-  metadata: SongMetaData | null,
-  file: File | null,
+  dbFile: DBFile | null,
   setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>>,
 ) {
-  if (!metadata) return;
-  if (!file) return;
+  if (!dbFile) return;
   const transaction = db.transaction("likedSongs", "readwrite");
   const store = transaction.objectStore("likedSongs");
   // Gets all songs
   const idQuery = store.getAll();
 
   idQuery.onsuccess = async () => {
-    const songFound = idQuery.result.find(
-      (query) => query.file.name === file.name && query.file.size === file.size,
-    );
+    const songFound = idQuery.result.find((query) => query === dbFile);
     // Run unlike logic here
     if (songFound) {
       await removeFromDB(songFound);
@@ -27,13 +22,13 @@ export async function handleLike(
       // Otherwise like song
       store.put({
         metadata: {
-          song_name: metadata.song_name,
-          artist: metadata.artist,
-          album: metadata.album,
-          duration: metadata.duration,
-          cover_art: metadata.coverArt,
+          song_name: dbFile.metadata.song_name,
+          artist: dbFile.metadata.artist,
+          album: dbFile.metadata.album,
+          duration: dbFile.metadata.duration,
+          cover_art: dbFile.metadata.coverArt,
         },
-        file,
+        file: dbFile.file,
       });
     }
     loadDB(setDB, true);

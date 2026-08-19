@@ -1,9 +1,10 @@
 import { ShuffledTracks } from "../../context/AudioContext";
+import { DBFile } from "../../context/FileContext";
 import { shuffleArray } from "../shuffleArray";
 
 interface Shuffle {
-  currentSong?: File | null;
-  validFiles?: File[] | null;
+  currentSong?: DBFile | null;
+  validFiles?: DBFile[] | null;
   isShuffling?: ShuffledTracks;
   setIsShuffling?: React.Dispatch<React.SetStateAction<ShuffledTracks | false>>;
 }

@@ -9,6 +9,7 @@ import {
 import { shuffleArray } from "../helpers/shuffleArray";
 import { loadDB } from "../helpers/database/db";
 import { SongMetaData } from "./AudioContext";
+import { getMetaData } from "../helpers/metadata";
 interface FileContextType {
   usingDBFiles: boolean;
   setUsingDBFiles: React.Dispatch<React.SetStateAction<boolean>>;
@@ -18,7 +19,7 @@ interface FileContextType {
   setFiles: React.Dispatch<React.SetStateAction<File[] | null>>;
   drag_drop_zone: React.RefObject<HTMLInputElement>;
   handleLoadRandomSamples: () => void;
-  validFiles: File[] | null;
+  validFiles: DBFile[] | null;
   db: DBFile[] | null;
   setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>>;
 }
@@ -33,7 +34,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   const [usingDBFiles, setUsingDBFiles] = useState<boolean>(false);
   const [uploadState, setUploadState] = useState(true);
   const [files, setFiles] = useState<File[] | null>(null);
-  const [validFiles, setValidFiles] = useState<null | File[]>(null);
+  const [validFiles, setValidFiles] = useState<DBFile[] | null>(null);
 
   const drag_drop_zone = useRef<HTMLInputElement>(null);
   const [db, setDB] = useState<DBFile[] | null>(null);
@@ -86,14 +87,28 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   // Checks whenever files are added and filters them by regex rule to determine if it's an audio file
   useEffect(() => {
     if (!files) return;
-
     const audioFiles = files.filter((file) =>
       /\.(mp3|wav|m4a|flac|ogg|opus|webm|aac)$/i.test(file.name),
     );
-
     if (!audioFiles) return;
-    setValidFiles(audioFiles);
-  }, [files, uploadState]);
+
+    const attachMetadata = async () => {
+      const filesWithMetadata = await Promise.all(
+        audioFiles.map(async (file) => {
+          const metadata = await getMetaData(file);
+          return { file, metadata };
+        }),
+      );
+      setValidFiles(filesWithMetadata);
+    };
+
+    attachMetadata();
+  }, [files]);
+
+  useEffect(() => {
+    if (!validFiles) return;
+    console.log(validFiles);
+  }, [validFiles]);
 
   async function handleLoadRandomSamples() {
     const samples = [

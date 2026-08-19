@@ -17,13 +17,11 @@ import { useFiles } from "./context/FileContext";
 function App() {
   const {
     isPlaying,
-    metadata,
     currentSong,
     audio,
     loopState,
     setIsPlaying,
     setIsReset,
-    setMetadata,
     setCurrentSong,
     onEnded,
     setLoopState,
@@ -62,7 +60,7 @@ function App() {
                   file={currentSong}
                   db={db}
                   likeSong={() => {
-                    handleLike(metadata, currentSong, setDB);
+                    handleLike(currentSong, setDB);
                   }}
                   stroke="oklch(82.7% 0.119 306.383)"
                   fill="oklch(82.7% 0.119 306.383)"
@@ -71,9 +69,7 @@ function App() {
                   repeat
                   loop={loopState}
                   stroke="oklch(82.7% 0.119 306.383)"
-                  onClick={() =>
-                    handleLoop({ metadata, audio, onEnded, setLoopState })
-                  }
+                  onClick={() => handleLoop({ audio, onEnded, setLoopState })}
                 />
               </div>
               <SongNavi />
@@ -82,12 +78,10 @@ function App() {
                   previous
                   onClick={() =>
                     handlePreviousTrack({
-                      metadata,
                       audio,
                       setIsReset,
                       currentSong,
                       validFiles,
-                      setMetadata,
                       setCurrentSong,
                       isPlaying,
                       setIsPlaying,
@@ -107,14 +101,12 @@ function App() {
                   skip
                   onClick={() =>
                     handleNextTrack(null, false, {
-                      metadata,
                       currentSong,
                       audio,
                       loopState,
                       validFiles,
                       setIsPlaying,
                       setIsReset,
-                      setMetadata,
                       setCurrentSong,
                       isShuffling,
                     })

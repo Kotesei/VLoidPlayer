@@ -1,4 +1,4 @@
-import { ShuffledTracks, SongMetaData } from "../context/AudioContext";
+import { ShuffledTracks } from "../context/AudioContext";
 import { DBFile } from "../context/FileContext";
 
 export function Button({
@@ -35,7 +35,7 @@ export function Button({
   isPlaying?: boolean;
   isShuffling?: ShuffledTracks;
   db?: DBFile[] | null;
-  file?: File | null;
+  file?: DBFile | null;
   nextLike?: boolean;
   loop?: string;
   animation?: boolean;
@@ -131,10 +131,7 @@ export function Button({
           />
         </svg>
       )}
-      {like &&
-      db?.find(
-        (db) => db.file.name === file?.name && db.file.size === file.size,
-      ) ? (
+      {like && db?.find((dbFile) => dbFile === file) ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 512 512"
@@ -169,10 +166,7 @@ export function Button({
           </svg>
         )
       )}
-      {nextLike &&
-      db?.find(
-        (db) => db.file.name === file?.name && db.file.size === file.size,
-      ) ? (
+      {nextLike && db?.find((dbFile) => dbFile === file) ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 512 512"

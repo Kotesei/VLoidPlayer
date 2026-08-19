@@ -1,37 +1,32 @@
 import { handleEnd } from "./ended";
-import { getMetaData } from "../metadata";
-import { ShuffledTracks, SongMetaData } from "../../context/AudioContext";
+import { ShuffledTracks } from "../../context/AudioContext";
+import { DBFile } from "../../context/FileContext";
 
 interface Next {
-  metadata: SongMetaData | null;
-  currentSong: File | null;
+  currentSong: DBFile | null;
   audio: HTMLAudioElement | null;
   loopState: string;
-  validFiles: File[] | null;
+  validFiles: DBFile[] | null;
   setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
-  setMetadata: React.Dispatch<React.SetStateAction<SongMetaData | null>>;
-  setCurrentSong: React.Dispatch<React.SetStateAction<File | null>>;
+  setCurrentSong: React.Dispatch<React.SetStateAction<DBFile | null>>;
   isShuffling: ShuffledTracks | false;
 }
 export async function handleNextTrack(
   _e: any,
   ended: boolean = false,
   {
-    metadata,
     currentSong,
     audio,
     loopState,
     validFiles,
     setIsPlaying,
     setIsReset,
-    setMetadata,
     setCurrentSong,
     isShuffling,
   }: Next,
 ) {
   if (!validFiles) return;
-  if (!metadata) return;
   if (!currentSong) return;
   if (!audio) return;
 
@@ -44,11 +39,14 @@ export async function handleNextTrack(
     audio.currentTime = 0;
     return;
   }
+  const currentIndex = validFiles.findIndex((item) => item === currentSong);
   const nextTrack = isShuffling
     ? isShuffling.shuffledTrackList[
-        isShuffling.shuffledTrackList.indexOf(currentSong) + 1
+        isShuffling.shuffledTrackList.findIndex(
+          (item) => item === currentSong,
+        ) + 1
       ]
-    : validFiles[validFiles.indexOf(currentSong) + 1];
+    : validFiles[currentIndex + 1];
 
   let song;
 
@@ -63,8 +61,7 @@ export async function handleNextTrack(
   } else {
     song = nextTrack;
   }
-  getMetaData(song, { setMetadata });
   setCurrentSong(song);
   setIsPlaying(true);
-  audio.src = URL.createObjectURL(song);
+  audio.src = URL.createObjectURL(song.file);
 }
