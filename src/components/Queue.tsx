@@ -13,12 +13,13 @@ export function Queue() {
     setShowingQueue(!showingQueue);
   }
 
-  useEffect(() => {
-    if (!showingQueue) return;
-    console.log(queue);
-    console.log(validFiles);
-  }, [showingQueue]);
+  // useEffect(() => {
+  //   if (!showingQueue) return;
+  //   console.log(queue);
+  //   console.log(validFiles);
+  // }, [showingQueue]);
 
+  console.log("test");
   return (
     <div className="h-[18dvh] w-full items-center gap-2 flex flex-col justify-end">
       <div className="flex flex-col items-center flex-1 py-[3dvh] justify-end">
@@ -142,14 +143,7 @@ export function Queue() {
                     </p>
                   </div>
                 )}
-                {!currentSong?.metadata && (
-                  <p className="text-center">
-                    Nothing has been added to the Queue
-                  </p>
-                )}
-                {currentSong?.metadata && currentSong && !nextSong && (
-                  <p className="text-center">End Of List</p>
-                )}
+                {!nextSong && <p className="text-center">End Of List</p>}
               </>
             )}
           </div>

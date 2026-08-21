@@ -131,7 +131,12 @@ export function Button({
           />
         </svg>
       )}
-      {like && db?.find((dbFile) => dbFile === file) ? (
+      {like &&
+      db?.find(
+        (dbFile) =>
+          dbFile.file.name === file?.file.name &&
+          dbFile.file.size === file.file.size,
+      ) ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 512 512"
@@ -166,7 +171,12 @@ export function Button({
           </svg>
         )
       )}
-      {nextLike && db?.find((dbFile) => dbFile === file) ? (
+      {nextLike &&
+      db?.find(
+        (dbFile) =>
+          dbFile.file.name === file?.file.name &&
+          dbFile.file.size === file.file.size,
+      ) ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 512 512"

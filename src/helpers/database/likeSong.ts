@@ -14,7 +14,11 @@ export async function handleLike(
   const idQuery = store.getAll();
 
   idQuery.onsuccess = async () => {
-    const songFound = idQuery.result.find((query) => query === dbFile);
+    const songFound = idQuery.result.find(
+      (query) =>
+        query.file.name === dbFile.file.name &&
+        query.file.size === dbFile.file.size,
+    );
     // Run unlike logic here
     if (songFound) {
       await removeFromDB(songFound);

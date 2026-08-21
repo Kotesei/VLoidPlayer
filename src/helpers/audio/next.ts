@@ -39,11 +39,13 @@ export async function handleNextTrack(
     audio.currentTime = 0;
     return;
   }
-  const currentIndex = validFiles.findIndex((item) => item === currentSong);
+  const currentIndex = validFiles.findIndex(
+    (item) => item.file === currentSong.file,
+  );
   const nextTrack = isShuffling
     ? isShuffling.shuffledTrackList[
         isShuffling.shuffledTrackList.findIndex(
-          (item) => item === currentSong,
+          (item) => item.file === currentSong.file,
         ) + 1
       ]
     : validFiles[currentIndex + 1];

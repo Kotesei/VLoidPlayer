@@ -24,17 +24,21 @@ export async function handlePreviousTrack({
 }: Previous) {
   if (!validFiles) return;
   if (!audio) return;
+  if (!currentSong) return;
+
   if (audio.currentTime > 2) {
     audio.currentTime = 0;
     setIsReset(true);
   } else {
-    const currentIndex = validFiles.findIndex((item) => item === currentSong);
+    const currentIndex = validFiles.findIndex(
+      (item) => item.file === currentSong.file,
+    );
     if (!currentSong) return;
     const prevTrack = isShuffling
       ? isShuffling.shuffledTrackList[
           isShuffling.shuffledTrackList.findIndex(
-            (item) => item === currentSong,
-          ) + 1
+            (item) => item.file === currentSong.file,
+          ) - 1
         ]
       : validFiles[currentIndex - 1];
     if (prevTrack) {

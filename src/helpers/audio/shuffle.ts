@@ -19,10 +19,13 @@ export async function handleShuffle({
   if (!validFiles) return;
   const newList = [...validFiles];
   newList.splice(
-    newList.findIndex((i) => i === currentSong),
+    newList.findIndex((i) => i.file === currentSong.file),
     1,
   );
   shuffleArray(newList);
+
+  console.log(newList);
+  console.log(currentSong);
   const shuffledTrackList = [currentSong, ...newList];
   if (!isShuffling) {
     setIsShuffling({ validFiles, shuffledTrackList });

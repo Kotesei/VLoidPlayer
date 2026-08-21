@@ -35,6 +35,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   const [uploadState, setUploadState] = useState(true);
   const [files, setFiles] = useState<File[] | null>(null);
   const [validFiles, setValidFiles] = useState<DBFile[] | null>(null);
+  const [usingSamples, setUsingSamples] = useState(false);
 
   const drag_drop_zone = useRef<HTMLInputElement>(null);
   const [db, setDB] = useState<DBFile[] | null>(null);
@@ -105,9 +106,12 @@ export function TracksProvider({ children }: { children: ReactNode }) {
     attachMetadata();
   }, [files]);
 
+  // Quick handling for using samples (Only disable the upload state after samples have been loaded into validFiles)
   useEffect(() => {
-    if (!validFiles) return;
-    console.log(validFiles);
+    if (usingSamples) {
+      setUploadState(false);
+      setUsingSamples(false);
+    }
   }, [validFiles]);
 
   async function handleLoadRandomSamples() {
@@ -130,20 +134,22 @@ export function TracksProvider({ children }: { children: ReactNode }) {
 
     const songs = selectedSamples.map(async (sample: string) => {
       const res = await fetch(`./src/assets/sample_audio/${sample}`);
-      const song: Blob = await res.blob();
+      const songData: Blob = await res.blob();
 
-      const songFile = new File([song], sample, {
-        type: song.type,
+      const file = new File([songData], sample, {
+        type: songData.type,
         lastModified: Date.now(),
       });
 
-      return songFile;
+      const metadata = await getMetaData(file);
+
+      return { file, metadata };
     });
 
     const songFiles = await Promise.all(songs);
 
-    setFiles(Array.from(songFiles || []));
-    setUploadState(false);
+    setUsingSamples(true);
+    setValidFiles(songFiles);
   }
 
   // For debugging purposes or maybe page loading [Could be useful for removing audio that is stored in the database if user wishes to remove songs, or even skipping the upload page sequence completely]
@@ -152,16 +158,6 @@ export function TracksProvider({ children }: { children: ReactNode }) {
       loadDB(setDB, false);
     };
   }, []);
-
-  // Logs files in the database after reading
-  // useEffect(() => {
-  //   if (!loadedDBFiles) return;
-  //   console.log(loadedDBFiles);
-  //   console.log(loadedDBMetadata);
-  //   console.log(files);
-  //   console.log(validFiles);
-  //   console.log(db);
-  // }, [loadedDBFiles]);
 
   return (
     <FileContext.Provider

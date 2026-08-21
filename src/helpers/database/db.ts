@@ -64,6 +64,7 @@ export async function loadDB(
 }
 
 export async function removeFromDB(song: any): Promise<void> {
+  console.log(song);
   return new Promise((res, rej) => {
     const transaction = db.transaction("likedSongs", "readwrite");
     const store = transaction.objectStore("likedSongs");

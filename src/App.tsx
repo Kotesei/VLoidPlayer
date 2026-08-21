@@ -28,7 +28,9 @@ function App() {
     isShuffling,
     setIsShuffling,
   } = useAudio();
+
   const { uploadState, db, setDB, validFiles } = useFiles();
+
   return (
     <>
       {uploadState && <Upload />}

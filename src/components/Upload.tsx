@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { DBFile, useFiles } from "../context/FileContext";
 import { clearDB, loadDB, removeFromDB } from "../helpers/database/db";
-import { useAudio } from "../context/AudioContext";
-import { handleShuffle } from "../helpers/audio/shuffle";
 
 // Starting point for new visitors (Web Version)
 export function Upload() {
@@ -19,8 +17,6 @@ export function Upload() {
     setUsingDBFiles,
   } = useFiles();
 
-  const { isShuffling, currentSong, setIsShuffling } = useAudio();
-
   const [isHovering, setIsHovering] = useState<boolean>(false);
   const [showDBNotice, setDBNotice] = useState<boolean>(true);
 
@@ -30,7 +26,7 @@ export function Upload() {
     if (!files) return;
     if (usingDBFiles && db) {
       db.find((item) => {
-        if (item.file.name === target.name) {
+        if (item.file.name === target.name && item.file.size === target.size) {
           removeFromDB(item);
           loadDB(setDB, true);
         }
@@ -47,13 +43,6 @@ export function Upload() {
     );
     setFiles(files);
     setUploadState(false);
-    if (isShuffling) {
-      handleShuffle({
-        currentSong,
-        validFiles,
-        setIsShuffling,
-      });
-    }
   }
 
   function handleHover(active: boolean) {
