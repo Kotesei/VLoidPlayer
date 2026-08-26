@@ -42,6 +42,9 @@ interface AudioContextType {
 
   onEnded: (e: Event) => void;
 
+  showingQueue: boolean;
+  setShowingQueue: React.Dispatch<React.SetStateAction<boolean>>;
+
   isShuffling: ShuffledTracks;
   setIsShuffling: React.Dispatch<React.SetStateAction<ShuffledTracks | false>>;
 }
@@ -50,13 +53,15 @@ export interface ShuffledTracks {
   validFiles: DBFile[];
   shuffledTrackList: DBFile[];
 }
+export type SortableDBFile = DBFile & {
+  id: number;
+};
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   // Contains the tracklist
-  const { validFiles, uploadState } = useFiles();
-
+  const { validFiles, uploadState, setValidFiles } = useFiles();
   const [isShuffling, setIsShuffling] = useState<ShuffledTracks | false>(false);
   // check/set when user is playing song
   const [isPlaying, setIsPlaying] = useState(false);
@@ -71,6 +76,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const [loopState, setLoopState] = useState("disabled");
   // Audio container
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [showingQueue, setShowingQueue] = useState<boolean>(false);
   const audio = audioRef.current;
 
   useEffect(() => {
@@ -91,7 +97,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         setCurrentSong,
         isShuffling,
       }),
-    [loopState, currentSong, isShuffling],
+    [loopState, currentSong, isShuffling, validFiles],
   );
 
   // Runs after song ends
@@ -205,6 +211,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           onEnded,
           isShuffling,
           setIsShuffling,
+          showingQueue,
+          setShowingQueue,
         } as AudioContextType
       }
     >

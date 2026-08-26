@@ -88,11 +88,6 @@ export function CoverArt() {
     };
   }, [coverArtRef.current, initialized, animationVisibility]);
 
-  // useEffect(() => {
-  //   if (!animationVisibility) return;
-  //   if (currentSong?.metadata) animationRef.current?.item?.show();
-  // }, [currentSong]);
-
   return (
     <>
       <div

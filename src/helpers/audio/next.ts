@@ -1,5 +1,5 @@
 import { handleEnd } from "./ended";
-import { ShuffledTracks } from "../../context/AudioContext";
+import { ShuffledTracks, SortableDBFile } from "../../context/AudioContext";
 import { DBFile } from "../../context/FileContext";
 
 interface Next {
@@ -42,6 +42,7 @@ export async function handleNextTrack(
   const currentIndex = validFiles.findIndex(
     (item) => item.file === currentSong.file,
   );
+
   const nextTrack = isShuffling
     ? isShuffling.shuffledTrackList[
         isShuffling.shuffledTrackList.findIndex(

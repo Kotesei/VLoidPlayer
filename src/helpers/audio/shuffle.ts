@@ -24,8 +24,6 @@ export async function handleShuffle({
   );
   shuffleArray(newList);
 
-  console.log(newList);
-  console.log(currentSong);
   const shuffledTrackList = [currentSong, ...newList];
   if (!isShuffling) {
     setIsShuffling({ validFiles, shuffledTrackList });

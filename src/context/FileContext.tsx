@@ -20,6 +20,7 @@ interface FileContextType {
   drag_drop_zone: React.RefObject<HTMLInputElement>;
   handleLoadRandomSamples: () => void;
   validFiles: DBFile[] | null;
+  setValidFiles: React.Dispatch<React.SetStateAction<DBFile[] | null>>;
   db: DBFile[] | null;
   setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>>;
 }
@@ -168,6 +169,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
         setFiles,
         drag_drop_zone,
         handleLoadRandomSamples,
+        setValidFiles,
         validFiles,
         setDB,
         db,

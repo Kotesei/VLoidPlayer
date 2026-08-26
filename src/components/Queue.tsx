@@ -1,25 +1,53 @@
-import { useEffect, useRef, useState } from "react";
-import { useAudio } from "../context/AudioContext";
-import { useFiles } from "../context/FileContext";
+import { SortableDBFile, useAudio } from "../context/AudioContext";
+import { DBFile, useFiles } from "../context/FileContext";
 import { handleLike } from "../helpers/database/likeSong";
 import { Button } from "./Button";
+import { ReactSortable } from "react-sortablejs";
 
 export function Queue() {
-  const { nextSong, currentSong, loopState } = useAudio();
-  const queue = useRef(null);
-  const { db, setDB, validFiles } = useFiles();
-  const [showingQueue, setShowingQueue] = useState<boolean>(false);
+  const {
+    nextSong,
+    currentSong,
+    loopState,
+    setCurrentSong,
+    audio,
+    isShuffling,
+    setIsShuffling,
+    setShowingQueue,
+    showingQueue,
+  } = useAudio();
+
+  const { db, setDB, validFiles, setValidFiles } = useFiles();
+
   function handleShowQueue() {
     setShowingQueue(!showingQueue);
+    if (!validFiles) return;
   }
 
-  // useEffect(() => {
-  //   if (!showingQueue) return;
-  //   console.log(queue);
-  //   console.log(validFiles);
-  // }, [showingQueue]);
+  function handleChangeSong(song: DBFile) {
+    if (!audio?.src) return;
+    setCurrentSong(song);
+    audio.src = URL.createObjectURL(song.file);
+  }
 
-  console.log("test");
+  const sortableList: SortableDBFile[] = (
+    isShuffling ? (isShuffling.shuffledTrackList ?? []) : (validFiles ?? [])
+  ).map((file, key) => ({
+    ...file,
+    id: key,
+  }));
+
+  const setSortableList = (newList: DBFile[]) => {
+    if (isShuffling) {
+      setIsShuffling((prev) => {
+        if (prev === false) return false;
+
+        return { ...prev, shuffledTrackList: newList };
+      });
+    } else {
+      setValidFiles(newList);
+    }
+  };
   return (
     <div className="h-[18dvh] w-full items-center gap-2 flex flex-col justify-end">
       <div className="flex flex-col items-center flex-1 py-[3dvh] justify-end">
@@ -28,43 +56,55 @@ export function Queue() {
       </div>
       <div className="min-h-[35%] flex justify-center relative w-full">
         <div
-          ref={queue}
           id="queue"
-          className={`gap-5 flex absolute border-b-0  rounded-b-none border-purple-300 ${showingQueue ? "justify-end w-[85%] h-[70dvh] border rounded-xl bg-[#16044e94] items-start p-4 flex-col-reverse" : "px-2 w-full border-t items-center justify-center"} min-h-full bottom-0  backdrop-blur-sm shadow-2xl shadow-purple-500 `}
+          className={`gap-5 flex absolute border-b-0  rounded-b-none border-purple-300 ${showingQueue ? "justify-end w-[85%] h-[70dvh] border rounded-xl bg-[#16044e94] items-start p-4 flex-col-reverse" : "px-2 w-full border-t items-center justify-center"} min-h-full bottom-0  backdrop-blur-sm shadow-2xl shadow-purple-500`}
         >
           {showingQueue && (
-            <div className="w-full h-full rounded-t-xl shadow-inner shadow-amber-50 border-t-red-200 border-t-2 text-white">
-              {currentSong?.metadata && (
-                <div className="px-2 text-xs pt-3 w-full h-full flex flex-col gap-2">
-                  <div className="bg-[#000c32a5] h-15 p-3 rounded-lg border-white border-2 flex justify-between items-center gap-5">
-                    <div>
-                      <p>
-                        {currentSong?.metadata?.song_name ??
-                          currentSong?.file?.name}
-                      </p>
-                      {currentSong?.metadata?.artist && (
-                        <p className="text-gray-400">
-                          {currentSong?.metadata?.artist}
-                        </p>
+            <div className="w-full h-full text-white overflow-auto scrollbar-thin scrollbar-thumb-white">
+              <ReactSortable
+                className="px-2 text-xs pt-3 w-full h-full flex flex-col gap-2"
+                list={sortableList}
+                setList={setSortableList}
+              >
+                {sortableList?.map((song, key) => {
+                  return (
+                    <div
+                      onClick={() => handleChangeSong(song)}
+                      key={key}
+                      className={`${song.file === currentSong?.file ? "bg-[#403b9ca5]" : "bg-[#000c32a5]"}  p-3 rounded-lg border-white flex justify-between items-center border-2 gap-5 relative`}
+                    >
+                      {db?.find(
+                        (dbFile) =>
+                          dbFile.file.name === song.file.name &&
+                          dbFile.file.size === song.file.size,
+                      ) && (
+                        <div
+                          className="absolute left-0 -translate-x-1/2 top-0 -translate-y-1/2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Button
+                            like
+                            file={song}
+                            db={db}
+                            likeSong={() => {
+                              handleLike(song, setDB);
+                            }}
+                            stroke="oklch(82.7% 0.119 306.383)"
+                            fill="oklch(82.7% 0.119 306.383)"
+                          />
+                        </div>
                       )}
-                    </div>
-                    <p>{currentSong?.metadata?.duration}</p>
-                  </div>
-                  {nextSong && (
-                    <div className="bg-[#000c32a5] p-3 rounded-lg border-white flex justify-between items-center border-2 gap-5">
                       <div>
-                        <p>
-                          {nextSong?.metadata?.song_name ?? nextSong?.file.name}
-                        </p>
+                        <p>{song?.metadata?.song_name ?? song?.file.name}</p>
                         <p className="text-gray-400">
-                          {nextSong?.metadata?.artist}
+                          {song?.metadata?.artist}
                         </p>
                       </div>
-                      <p>{nextSong?.metadata?.duration}</p>
+                      <p>{song?.metadata?.duration}</p>
                     </div>
-                  )}
-                </div>
-              )}
+                  );
+                })}
+              </ReactSortable>
             </div>
           )}
           <div
@@ -138,12 +178,33 @@ export function Queue() {
                         fill="oklch(82.7% 0.119 306.383)"
                       />
                     </div>
-                    <p className="text-center">
-                      {nextSong.metadata.song_name ?? "Unknown"}
-                    </p>
+                    {loopState === "list" && (
+                      <p className="text-center">
+                        {sortableList[
+                          sortableList.findIndex(
+                            (item) => item.file.name === currentSong.file.name,
+                          ) + 1
+                        ]?.metadata.song_name ??
+                          sortableList[0].metadata.song_name}
+                      </p>
+                    )}
                   </div>
                 )}
-                {!nextSong && <p className="text-center">End Of List</p>}
+                {loopState === "disabled" && (
+                  <p className="text-center">
+                    {sortableList[sortableList.length - 1].file.name ===
+                    currentSong?.file.name
+                      ? "End Of List"
+                      : `${
+                          sortableList[
+                            sortableList.findIndex(
+                              (item) =>
+                                item.file.name === currentSong?.file.name,
+                            ) + 1
+                          ]?.metadata.song_name
+                        }`}
+                  </p>
+                )}
               </>
             )}
           </div>

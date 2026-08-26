@@ -32,7 +32,9 @@
 
 # Things to consider for final build
 
-- [ ] More interactive Queue, should allow user to move songs around via dragging and change the play order or play whichever song and like/unlike from the list
+- [ ] Clean up files and organize
+
+- [ ] SVG Animations for buttons
 
 - [ ] Playlists (Should only save the file's name, metadata (if there is one), file size) should not contain any actual file just the things that will help search for the file. Searches the database and searches the other list to see if the song would be found. (If not found then the song will just be grayed out and unable to be selected) SHOULD ALSO BE ABLE TO CHANGE THE SONG ORDERS VIA DRAGGING.
 
@@ -40,7 +42,9 @@
 
 - [ ] Thinking of adding a cool visual animation for when importing songs, will most likely add it after most the app is functional (Need to ensure app runs decent at least on web before considering it but I'll apply it on the actual app)
 
-- ~~[x] Try app in different sizes and adjust as needed using clamps~~
+- [x] ~~More interactive Queue, should allow user to move songs around via dragging and change the play order or play whichever song and like/unlike from the list~~
+
+- [x] ~~Try app in different sizes and adjust as needed using clamps~~
 
 - [x] ~~Fix next in queue and make sure it shows the right state for liked song or not~~
 
