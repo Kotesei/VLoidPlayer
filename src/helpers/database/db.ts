@@ -56,6 +56,10 @@ export async function loadDB(
   read: boolean,
 ) {
   const dbFiles = await readDB();
+  if (!dbFiles.length) {
+    console.log("No saved songs found.. returning");
+    return;
+  }
   if (read) {
     setDB(dbFiles);
   } else {

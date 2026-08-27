@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { DBFile, useFiles } from "../context/FileContext";
 import { clearDB, loadDB, removeFromDB } from "../helpers/database/db";
+import { handleLoadRandomSamples } from "../helpers/audio/samples";
 
 // Starting point for new visitors (Web Version)
 export function Upload() {
   const {
     files,
     drag_drop_zone,
-    handleLoadRandomSamples,
     setFiles,
     setUploadState,
     validFiles,
+    setValidFiles,
+    setUsingSamples,
     setDB,
     db,
     usingDBFiles,
@@ -19,7 +21,6 @@ export function Upload() {
 
   const [isHovering, setIsHovering] = useState<boolean>(false);
   const [showDBNotice, setDBNotice] = useState<boolean>(true);
-
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
 
   function handleRemoveFile(target: File) {
@@ -56,7 +57,7 @@ export function Upload() {
   async function handleClearDB() {
     await clearDB();
     setIsConfirming(false);
-    loadDB(setDB, false);
+    setDB([]);
   }
 
   function handleUseDBFiles(load: boolean) {
@@ -230,7 +231,9 @@ export function Upload() {
                   Upload
                 </button>
                 <button
-                  onClick={handleLoadRandomSamples}
+                  onClick={() =>
+                    handleLoadRandomSamples(setUsingSamples, setValidFiles)
+                  }
                   className="bg-white px-5 h-fit whitespace-nowrap py-1 rounded-full  text-[clamp(1rem,2vmin,5rem)]"
                 >
                   Use Samples

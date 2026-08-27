@@ -29,9 +29,6 @@ interface AudioContextType {
   currentSong: DBFile | null;
   setCurrentSong: React.Dispatch<React.SetStateAction<DBFile | null>>;
 
-  nextSong: DBFile | null;
-  setNextSong: React.Dispatch<React.SetStateAction<DBFile | null>>;
-
   isReset: boolean;
   setIsReset: React.Dispatch<React.SetStateAction<boolean>>;
 
@@ -53,38 +50,35 @@ export interface ShuffledTracks {
   validFiles: DBFile[];
   shuffledTrackList: DBFile[];
 }
-export type SortableDBFile = DBFile & {
-  id: number;
-};
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export function AudioProvider({ children }: { children: ReactNode }) {
-  // Contains the tracklist
-  const { validFiles, uploadState, setValidFiles } = useFiles();
+  const { validFiles, uploadState } = useFiles();
+  // State for shuffling the song list, contains the original array of songs and the shuffled version
   const [isShuffling, setIsShuffling] = useState<ShuffledTracks | false>(false);
-  // check/set when user is playing song
+  // Checks/Sets when user is playing a song
   const [isPlaying, setIsPlaying] = useState(false);
-  // currentsong is just file location of the song
+  // CurrentSong contains the file and metadata of the song.
   const [currentSong, setCurrentSong] = useState<DBFile | null>(null);
-  // same as metadata but contains the next set of data
-  // Will probably have to make something just like this for a queue system (Skipping current and next song to avoid duplicate calls)
-  const [nextSong, setNextSong] = useState<DBFile | null>(null);
-  // Checks if song has been reset
+  // Checks if song has been reset (Useful for single loop)
   const [isReset, setIsReset] = useState<boolean>(false);
-  // Loop state to handle repeat once or repeat list or repeat none
+  // Loop state to handle repeat once/list/disabled
   const [loopState, setLoopState] = useState("disabled");
   // Audio container
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Checks if the queue menu is showing or not (This contains a list of all the songs from validFiles or the isShuffling shuffled tracks)
   const [showingQueue, setShowingQueue] = useState<boolean>(false);
+  // Store the audio ref in a const for easier usage
   const audio = audioRef.current;
 
+  // Turns off the music when going to upload page
   useEffect(() => {
     if (!uploadState) return;
     setIsPlaying(false);
   }, [uploadState, audioRef]);
 
-  // Used to memorize the function in order to change the listener when switching between loop modes or when metadata changes
+  // Used to memorize the function in order to change the listener when switching between loop/shuffle modes or when metadata changes
   const onEnded = useCallback(
     (e: Event) =>
       handleNextTrack(e, true, {
@@ -100,36 +94,38 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     [loopState, currentSong, isShuffling, validFiles],
   );
 
-  // Runs after song ends
+  // Updates the event listener when the song ends
   useEffect(() => {
-    if (!audio) return;
-    audio.addEventListener("ended", onEnded);
-    return () => audio.removeEventListener("ended", onEnded);
-  }, [onEnded]);
+    if (!currentSong) return;
+    audio?.addEventListener("ended", onEnded);
+    return () => audio?.removeEventListener("ended", onEnded);
+  }, [loopState, currentSong, isShuffling, onEnded]);
 
+  // Updates the tab to current song or if uploading/not playing
   useEffect(() => {
+    if (!currentSong) return;
+    if (uploadState) {
+      document.title = "Upload Files - VLoid Player ";
+    } else {
+      document.title = "Not Playing - VLoid Player";
+    }
     if (!isPlaying) return;
     document.title = currentSong?.metadata.song_name ?? "VLoid Player";
-  }, [currentSong, isPlaying]);
+  }, [currentSong, isPlaying, uploadState]);
 
-  // Do stuff if song is playing
+  // Pause/Play the audio
   useEffect(() => {
     if (!currentSong) return;
     if (!isPlaying) {
-      // Pause song
       audio?.pause();
     } else if (isPlaying) {
-      // Runs the function to get the metadata for a song. Args: (song_location, metadata_state) only if there is no metadata
-      // if (!metadata) getMetaData(currentSong.file, { setMetadata });
-      // Play song
       audio?.play();
     }
-  }, [isPlaying, validFiles]);
+  }, [isPlaying]);
 
-  ///////////////////////////
-  // Starting State (This is mostly for debugging) //
+  // Updates whenever files are added/removed and ensures the app will change the current song if it is deleted.
   useEffect(() => {
-    if (!validFiles) return;
+    if (!validFiles?.length) return;
     if (!audio) return;
 
     if (uploadState) {
@@ -149,50 +145,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   }, [validFiles, uploadState]);
 
-  // This is for any loop state changes
-  useEffect(() => {
-    if (!currentSong) return;
-    if (!validFiles) return;
-    const currentIndex = validFiles.findIndex(
-      (item) => item.file === currentSong.file,
-    );
-    audio?.removeEventListener("ended", onEnded);
-    const nextTrack = isShuffling
-      ? isShuffling.shuffledTrackList[
-          isShuffling.shuffledTrackList.indexOf(currentSong) + 1
-        ]
-      : validFiles[currentIndex + 1];
-
-    switch (loopState) {
-      // Loop List
-      case "list":
-        if (!nextTrack) {
-          setNextSong(
-            isShuffling ? isShuffling.shuffledTrackList[0] : validFiles[0],
-          );
-        } else {
-          setNextSong(nextTrack);
-        }
-        break;
-      // Single Song
-      case "single":
-        if (!nextTrack) {
-          setNextSong(null);
-        }
-        break;
-      // Disable Loop
-      case "disabled":
-        if (!nextTrack) {
-          setNextSong(null);
-        } else {
-          setNextSong(nextTrack);
-        }
-        break;
-    }
-    audio?.addEventListener("ended", onEnded);
-    return () => audio?.removeEventListener("ended", onEnded);
-  }, [loopState, currentSong, isShuffling]);
-
   return (
     <AudioContext.Provider
       value={
@@ -201,8 +153,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
           setIsPlaying,
           currentSong,
           setCurrentSong,
-          nextSong,
-          setNextSong,
           audio,
           isReset,
           setIsReset,
@@ -222,7 +172,6 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   );
 }
 
-//
 export function useAudio() {
   const context = useContext(AudioContext);
   if (!context) {

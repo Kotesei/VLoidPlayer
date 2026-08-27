@@ -1,5 +1,5 @@
 import { handleEnd } from "./ended";
-import { ShuffledTracks, SortableDBFile } from "../../context/AudioContext";
+import { ShuffledTracks } from "../../context/AudioContext";
 import { DBFile } from "../../context/FileContext";
 
 interface Next {

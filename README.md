@@ -22,7 +22,7 @@
 
 # Goals:
 
-- [ ] [**95% Done**] Sample Website (Testing Phase.)
+- [ ] [**96% Done**] Sample Website (Testing Phase.)
 
 - [ ] [**60% Done**] Fully Built Electron App (Functionality done, needs file system management, advanced audio, song bpm detection for on beat animation)
 
@@ -32,15 +32,17 @@
 
 # Things to consider for final build
 
-- [ ] Clean up files and organize
-
 - [ ] SVG Animations for buttons
+
+- [ ] Database for storing play count and playlists
 
 - [ ] Playlists (Should only save the file's name, metadata (if there is one), file size) should not contain any actual file just the things that will help search for the file. Searches the database and searches the other list to see if the song would be found. (If not found then the song will just be grayed out and unable to be selected) SHOULD ALSO BE ABLE TO CHANGE THE SONG ORDERS VIA DRAGGING.
 
 - [ ] Ensure web app works well on mobile devices (Things such as the slider for seeking are bugged on mobile since it most likely uses a different event listener) also sizing should be dynamic and fit properly.
 
 - [ ] Thinking of adding a cool visual animation for when importing songs, will most likely add it after most the app is functional (Need to ensure app runs decent at least on web before considering it but I'll apply it on the actual app)
+
+- [x] ~~Clean up files and organize~~
 
 - [x] ~~More interactive Queue, should allow user to move songs around via dragging and change the play order or play whichever song and like/unlike from the list~~
 

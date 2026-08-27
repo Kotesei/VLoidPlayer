@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { shuffleArray } from "../helpers/shuffleArray";
 import { loadDB } from "../helpers/database/db";
 import { SongMetaData } from "./AudioContext";
 import { getMetaData } from "../helpers/metadata";
@@ -18,9 +17,9 @@ interface FileContextType {
   files: File[] | null;
   setFiles: React.Dispatch<React.SetStateAction<File[] | null>>;
   drag_drop_zone: React.RefObject<HTMLInputElement>;
-  handleLoadRandomSamples: () => void;
   validFiles: DBFile[] | null;
   setValidFiles: React.Dispatch<React.SetStateAction<DBFile[] | null>>;
+  setUsingSamples: React.Dispatch<React.SetStateAction<boolean>>;
   db: DBFile[] | null;
   setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>>;
 }
@@ -32,14 +31,22 @@ export interface DBFile {
 const FileContext = createContext<FileContextType | undefined>(undefined);
 
 export function TracksProvider({ children }: { children: ReactNode }) {
+  // State to check if user is using DB files or not.
   const [usingDBFiles, setUsingDBFiles] = useState<boolean>(false);
-  const [uploadState, setUploadState] = useState(true);
+  // Used to switch between upload page and player
+  const [uploadState, setUploadState] = useState<boolean>(true);
+  // Used to store the files dropped in the upload page (Used to visually show files regardless of type)
   const [files, setFiles] = useState<File[] | null>(null);
+  // Contains only validated files from the files (Used to handle the actual files needed)
   const [validFiles, setValidFiles] = useState<DBFile[] | null>(null);
-  const [usingSamples, setUsingSamples] = useState(false);
-
+  // Used for if the user does not want to upload any songs for the music player and instead recieves an array of songs I made randomly.
+  const [usingSamples, setUsingSamples] = useState<boolean>(false);
+  // Container for the drop zone where users drop files
   const drag_drop_zone = useRef<HTMLInputElement>(null);
+  // Files from the local database on user's device
   const [db, setDB] = useState<DBFile[] | null>(null);
+
+  // Updates the dropped files event listener whenever new files are added or when uploadState changes
   useEffect(() => {
     if (!uploadState) return;
     if (!drag_drop_zone) return;
@@ -115,45 +122,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
     }
   }, [validFiles]);
 
-  async function handleLoadRandomSamples() {
-    const samples = [
-      "A Serious Time.wav",
-      "Bard's Shop.wav",
-      "Early Bird's Stroll.wav",
-      "Fat Cat.wav",
-      "It's Time for Rest...wav",
-      "Main Menu.wav",
-      "Meow.wav",
-      "Might Float.wav",
-      "Night Owl's Stroll.wav",
-      "Sneaking By.wav",
-      "Stuck Cave Diving.wav",
-      "The Trenches.wav",
-      "Thinking of Another Way.wav",
-    ];
-    const selectedSamples = shuffleArray(samples).splice(0, 3);
-
-    const songs = selectedSamples.map(async (sample: string) => {
-      const res = await fetch(`./src/assets/sample_audio/${sample}`);
-      const songData: Blob = await res.blob();
-
-      const file = new File([songData], sample, {
-        type: songData.type,
-        lastModified: Date.now(),
-      });
-
-      const metadata = await getMetaData(file);
-
-      return { file, metadata };
-    });
-
-    const songFiles = await Promise.all(songs);
-
-    setUsingSamples(true);
-    setValidFiles(songFiles);
-  }
-
-  // For debugging purposes or maybe page loading [Could be useful for removing audio that is stored in the database if user wishes to remove songs, or even skipping the upload page sequence completely]
+  // Loads the database on init, logs if there are no songs found (Will leave the log alone for now).
   useEffect(() => {
     return () => {
       loadDB(setDB, false);
@@ -168,13 +137,13 @@ export function TracksProvider({ children }: { children: ReactNode }) {
         files,
         setFiles,
         drag_drop_zone,
-        handleLoadRandomSamples,
         setValidFiles,
         validFiles,
         setDB,
         db,
         usingDBFiles,
         setUsingDBFiles,
+        setUsingSamples,
       }}
     >
       {children}

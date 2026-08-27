@@ -1,12 +1,15 @@
-import { SortableDBFile, useAudio } from "../context/AudioContext";
+import { useAudio } from "../context/AudioContext";
 import { DBFile, useFiles } from "../context/FileContext";
 import { handleLike } from "../helpers/database/likeSong";
 import { Button } from "./Button";
 import { ReactSortable } from "react-sortablejs";
 
+type SortableDBFile = DBFile & {
+  id: number;
+};
+
 export function Queue() {
   const {
-    nextSong,
     currentSong,
     loopState,
     setCurrentSong,
@@ -48,6 +51,14 @@ export function Queue() {
       setValidFiles(newList);
     }
   };
+
+  const nextSong =
+    sortableList[
+      sortableList.findIndex(
+        (item) => item.file.name === currentSong?.file.name,
+      ) + 1
+    ];
+
   return (
     <div className="h-[18dvh] w-full items-center gap-2 flex flex-col justify-end">
       <div className="flex flex-col items-center flex-1 py-[3dvh] justify-end">
@@ -164,45 +175,35 @@ export function Queue() {
               </>
             ) : (
               <>
-                {currentSong?.metadata && nextSong && (
-                  <div className="max-w-full w-fit self-center">
-                    <div className="absolute translate-y-1/2 bottom-1/2 right-[clamp(1rem,1vmin,5rem)]">
-                      <Button
-                        nextLike
-                        file={nextSong}
-                        db={db}
-                        likeSong={() => {
-                          handleLike(nextSong, setDB);
-                        }}
-                        stroke="oklch(82.7% 0.119 306.383)"
-                        fill="oklch(82.7% 0.119 306.383)"
-                      />
+                {currentSong?.metadata &&
+                  (nextSong || loopState === "list") && (
+                    <div className="max-w-full w-fit self-center">
+                      <div className="absolute translate-y-1/2 bottom-1/2 right-[clamp(1rem,1vmin,5rem)]">
+                        <Button
+                          nextLike
+                          file={nextSong}
+                          db={db}
+                          likeSong={() => {
+                            handleLike(nextSong, setDB);
+                          }}
+                          stroke="oklch(82.7% 0.119 306.383)"
+                          fill="oklch(82.7% 0.119 306.383)"
+                        />
+                      </div>
+                      {loopState === "list" && (
+                        <p className="text-center">
+                          {nextSong?.metadata.song_name ??
+                            sortableList[0].metadata.song_name}
+                        </p>
+                      )}
                     </div>
-                    {loopState === "list" && (
-                      <p className="text-center">
-                        {sortableList[
-                          sortableList.findIndex(
-                            (item) => item.file.name === currentSong.file.name,
-                          ) + 1
-                        ]?.metadata.song_name ??
-                          sortableList[0].metadata.song_name}
-                      </p>
-                    )}
-                  </div>
-                )}
+                  )}
                 {loopState === "disabled" && (
                   <p className="text-center">
                     {sortableList[sortableList.length - 1].file.name ===
                     currentSong?.file.name
                       ? "End Of List"
-                      : `${
-                          sortableList[
-                            sortableList.findIndex(
-                              (item) =>
-                                item.file.name === currentSong?.file.name,
-                            ) + 1
-                          ]?.metadata.song_name
-                        }`}
+                      : `${nextSong?.metadata.song_name}`}
                   </p>
                 )}
               </>
