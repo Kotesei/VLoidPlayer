@@ -21,6 +21,7 @@ export function Button({
   animation,
   visible,
   upload,
+  altSizing,
 }: {
   shuffle?: boolean;
   like?: boolean;
@@ -41,6 +42,7 @@ export function Button({
   animation?: boolean;
   visible?: boolean;
   upload?: boolean;
+  altSizing?: boolean;
 }) {
   return (
     <>
@@ -140,7 +142,7 @@ export function Button({
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 512 512"
-          className="ionicon w-[clamp(1.5rem,4vmin,2.5rem)]"
+          className={`ionicon ${altSizing ? "w-[clamp(1rem,2vmin,2rem)]" : "w-[clamp(1.5rem,4vmin,2.5rem)]"}`}
           onClick={likeSong}
         >
           <path

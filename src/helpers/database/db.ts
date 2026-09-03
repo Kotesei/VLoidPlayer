@@ -7,6 +7,20 @@ async function openDB(): Promise<IDBDatabase> {
     request.onupgradeneeded = () => {
       const db = request.result;
 
+      if (!db.objectStoreNames.contains("playlistSongs")) {
+        db.createObjectStore("playlistSongs", {
+          keyPath: "id",
+          autoIncrement: true,
+        });
+      }
+
+      if (!db.objectStoreNames.contains("playlists")) {
+        db.createObjectStore("playlists", {
+          keyPath: "id",
+          autoIncrement: true,
+        });
+      }
+
       if (!db.objectStoreNames.contains("likedSongs")) {
         const store = db.createObjectStore("likedSongs", {
           keyPath: "id",
@@ -57,6 +71,7 @@ export async function loadDB(
 ) {
   const dbFiles = await readDB();
   if (!dbFiles.length) {
+    setDB(dbFiles);
     console.log("No saved songs found.. returning");
     return;
   }

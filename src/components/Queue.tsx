@@ -71,7 +71,7 @@ export function Queue() {
           className={`gap-5 flex absolute border-b-0  rounded-b-none border-purple-300 ${showingQueue ? "justify-end w-[85%] h-[70dvh] border rounded-xl bg-[#16044e94] items-start p-4 flex-col-reverse" : "px-2 w-full border-t items-center justify-center"} min-h-full bottom-0  backdrop-blur-sm shadow-2xl shadow-purple-500`}
         >
           {showingQueue && (
-            <div className="w-full h-full text-white overflow-auto scrollbar-thin scrollbar-thumb-white">
+            <div className="w-full h-full text-white overflow-auto scrollbar-thin scrollbar-thumb-white px-[clamp(0rem,2%,5rem)]">
               <ReactSortable
                 className="px-2 text-xs pt-3 w-full h-full flex flex-col gap-2"
                 list={sortableList}
@@ -82,7 +82,7 @@ export function Queue() {
                     <div
                       onClick={() => handleChangeSong(song)}
                       key={key}
-                      className={`${song.file === currentSong?.file ? "bg-[#403b9ca5]" : "bg-[#000c32a5]"}  p-3 rounded-lg border-white flex justify-between items-center border-2 gap-5 relative`}
+                      className={`${song.file === currentSong?.file ? "bg-[#403b9ca5]" : "bg-[#000c32a5]"} p-3 rounded-lg border-white flex justify-between items-center border-2 gap-5 relative`}
                     >
                       {db?.find(
                         (dbFile) =>
@@ -90,10 +90,11 @@ export function Queue() {
                           dbFile.file.size === song.file.size,
                       ) && (
                         <div
-                          className="absolute left-0 -translate-x-1/2 top-0 -translate-y-1/2"
+                          className="absolute left-0 -translate-x-1/2 top-1 -translate-y-1/2"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Button
+                            altSizing
                             like
                             file={song}
                             db={db}
@@ -179,16 +180,30 @@ export function Queue() {
                   (nextSong || loopState === "list") && (
                     <div className="max-w-full w-fit self-center">
                       <div className="absolute translate-y-1/2 bottom-1/2 right-[clamp(1rem,1vmin,5rem)]">
-                        <Button
-                          nextLike
-                          file={nextSong}
-                          db={db}
-                          likeSong={() => {
-                            handleLike(nextSong, setDB);
-                          }}
-                          stroke="oklch(82.7% 0.119 306.383)"
-                          fill="oklch(82.7% 0.119 306.383)"
-                        />
+                        {nextSong && (
+                          <Button
+                            nextLike
+                            file={nextSong}
+                            db={db}
+                            likeSong={() => {
+                              handleLike(nextSong, setDB);
+                            }}
+                            stroke="oklch(82.7% 0.119 306.383)"
+                            fill="oklch(82.7% 0.119 306.383)"
+                          />
+                        )}
+                        {!nextSong && loopState === "list" && (
+                          <Button
+                            nextLike
+                            file={sortableList[0]}
+                            db={db}
+                            likeSong={() => {
+                              handleLike(sortableList[0], setDB);
+                            }}
+                            stroke="oklch(82.7% 0.119 306.383)"
+                            fill="oklch(82.7% 0.119 306.383)"
+                          />
+                        )}
                       </div>
                       {loopState === "list" && (
                         <p className="text-center">

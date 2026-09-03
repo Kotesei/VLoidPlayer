@@ -1,5 +1,6 @@
 import {
   createContext,
+  MutableRefObject,
   ReactNode,
   useContext,
   useEffect,
@@ -9,6 +10,9 @@ import {
 import { loadDB } from "../helpers/database/db";
 import { SongMetaData } from "./AudioContext";
 import { getMetaData } from "../helpers/metadata";
+import { AnimationItem } from "lottie-web";
+import { addToPlaylist } from "../helpers/database/addToPlaylist";
+import { loadPlaylists } from "../helpers/database/loadPlaylists";
 interface FileContextType {
   usingDBFiles: boolean;
   setUsingDBFiles: React.Dispatch<React.SetStateAction<boolean>>;
@@ -17,15 +21,29 @@ interface FileContextType {
   files: File[] | null;
   setFiles: React.Dispatch<React.SetStateAction<File[] | null>>;
   drag_drop_zone: React.RefObject<HTMLInputElement>;
+  coverArtRef: React.RefObject<HTMLDivElement>;
+  animationRef: MutableRefObject<AnimationData | null>;
   validFiles: DBFile[] | null;
   setValidFiles: React.Dispatch<React.SetStateAction<DBFile[] | null>>;
   setUsingSamples: React.Dispatch<React.SetStateAction<boolean>>;
   db: DBFile[] | null;
   setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>>;
+  fetchPlaylists: () => void;
+  playlists: Playlist[] | null;
 }
 export interface DBFile {
   metadata: SongMetaData;
   file: File;
+}
+
+export interface AnimationData {
+  src: string | null;
+  item: AnimationItem | null;
+}
+
+export interface Playlist {
+  playlistName: string;
+  id: number;
 }
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
@@ -45,6 +63,11 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   const drag_drop_zone = useRef<HTMLInputElement>(null);
   // Files from the local database on user's device
   const [db, setDB] = useState<DBFile[] | null>(null);
+  const [playlists, setPlaylists] = useState<Playlist[] | null>(null);
+
+  // Contains the animation data and cover art
+  const coverArtRef = useRef<HTMLDivElement | null>(null);
+  const animationRef = useRef<AnimationData | null>(null);
 
   // Updates the dropped files event listener whenever new files are added or when uploadState changes
   useEffect(() => {
@@ -129,6 +152,22 @@ export function TracksProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  async function fetchPlaylists() {
+    const playlists = await loadPlaylists();
+    if (!playlists) return;
+    setPlaylists(playlists);
+  }
+
+  useEffect(() => {
+    return () => {
+      fetchPlaylists();
+    };
+  }, []);
+  useEffect(() => {
+    if (!playlists) return;
+    console.log(playlists);
+  }, [playlists]);
+
   return (
     <FileContext.Provider
       value={{
@@ -143,7 +182,11 @@ export function TracksProvider({ children }: { children: ReactNode }) {
         db,
         usingDBFiles,
         setUsingDBFiles,
+        animationRef,
+        coverArtRef,
         setUsingSamples,
+        fetchPlaylists,
+        playlists,
       }}
     >
       {children}

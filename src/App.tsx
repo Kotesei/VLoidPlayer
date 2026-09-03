@@ -13,6 +13,8 @@ import { handleShuffle } from "./helpers/audio/shuffle";
 import { handleLike } from "./helpers/database/likeSong";
 import { Upload } from "./components/Upload";
 import { useFiles } from "./context/FileContext";
+import { Sidebar } from "./components/Sidebar";
+import { useState } from "react";
 
 function App() {
   const {
@@ -30,15 +32,17 @@ function App() {
   } = useAudio();
 
   const { uploadState, db, setDB, validFiles } = useFiles();
+  const [activeSidebar, setActiveSidebar] = useState(true);
 
   return (
     <>
+      {activeSidebar && <Sidebar />}
       {uploadState && <Upload />}
       {!uploadState && (
         <div className="h-full w-full flex-col flex items-center justify-end gap-3">
           <SongDetails />
           <div
-            className="max-h-[62dvh] flex flex-col items-center px-13 w-[clamp(5.5rem,85vmin,55.5rem)] min-w-76 max-w-225 flex-1"
+            className="max-h-[62dvh] flex flex-col items-center px-13 w-[clamp(5.5rem,85vmin,55.5rem)] min-w-76 max-w-225 flex-1 relative"
             id="songContainer"
           >
             <CoverArt />

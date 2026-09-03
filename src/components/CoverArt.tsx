@@ -1,25 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { animate } from "../helpers/animate";
-import { AnimationItem } from "lottie-web";
 import { useAudio } from "../context/AudioContext";
 import { Button } from "./Button";
 import { useFiles } from "../context/FileContext";
 
-interface AnimationData {
-  src: string | null;
-  item: AnimationItem | null;
-}
 export function CoverArt() {
   const { isPlaying, currentSong } = useAudio();
-  const { setUploadState } = useFiles();
+  const { setUploadState, coverArtRef, animationRef } = useFiles();
   const [initialized, setInitialized] = useState(false);
   const [width, setWidth] = useState<String | null>(null);
-  const coverArtRef = useRef<HTMLDivElement | null>(null);
   // Will probably move this for speed control of the animation in the context in the future
-  const [currentSpeed, setSpeed] = useState<number>(1);
+  const [currentSpeed, setSpeed] = useState<number>(2);
   const [animationVisibility, setAnimationVisibility] = useState(true);
-  // Contains the animation data
-  const animationRef = useRef<AnimationData | null>(null);
 
   async function toggleAnimation() {
     setAnimationVisibility(!animationVisibility);
@@ -30,15 +22,15 @@ export function CoverArt() {
   }
 
   useEffect(() => {
-    if (!animationRef.current?.item || !animationRef.current.item.isLoaded)
-      return;
+    if (!animationRef.current?.item?.isLoaded) return;
     if (!currentSong?.metadata) return;
     if (animationVisibility) {
+      if (!animationRef.current?.item) return;
       animationRef.current.item.show();
     } else {
       animationRef.current.item.hide();
     }
-  }, [animationVisibility, animationRef.current]);
+  }, [animationVisibility]);
 
   useEffect(() => {
     if (!coverArtRef.current) return;
@@ -50,11 +42,10 @@ export function CoverArt() {
       // Stops the animation
       animationRef.current?.item?.setSpeed(0);
     } else {
-      setInitialized(true);
       // Plays the animation at whatever the speed set was
       animationRef.current?.item?.setSpeed(currentSpeed);
     }
-  }, [isPlaying]);
+  }, [isPlaying, animationRef]);
 
   useEffect(() => {
     return () => handleResize();
@@ -74,25 +65,21 @@ export function CoverArt() {
 
   useEffect(() => {
     if (!animationVisibility) return;
-    if (!initialized) return;
+    if (!isPlaying) return;
+    if (initialized) return;
     if (!coverArtRef.current) return;
-    if (animationRef.current?.src) return;
     const src = "./src/assets/test2.json";
     const animation = animate(coverArtRef.current, src);
+    animation.setSpeed(currentSpeed);
     animationRef.current = { src, item: animation };
-    return () => {
-      animation.destroy();
-      if (animationRef.current?.item === animation) {
-        animationRef.current = null;
-      }
-    };
-  }, [coverArtRef.current, initialized, animationVisibility]);
+    setInitialized(true);
+  }, [initialized, isPlaying, animationVisibility]);
 
   return (
     <>
       <div
         style={{ width: `${width}` }}
-        className="flex justify-between h-5.5 items-center mb-[2dvh]"
+        className="flex justify-between h-fit items-center mb-[2dvh]"
       >
         <Button
           upload
