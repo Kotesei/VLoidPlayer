@@ -22,11 +22,13 @@ export function Button({
   visible,
   upload,
   altSizing,
+  playlist,
 }: {
   shuffle?: boolean;
   like?: boolean;
   repeat?: boolean;
   previous?: boolean;
+  playlist?: boolean;
   playPause?: boolean;
   skip?: boolean;
   fill?: string;
@@ -46,6 +48,30 @@ export function Button({
 }) {
   return (
     <>
+      {playlist && (
+        <svg
+          onClick={onClick}
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 512 512"
+          className="ionicon w-[clamp(1.5rem,4vmin,2.5rem)]"
+        >
+          <path
+            d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192Z"
+            fill="none"
+            stroke={stroke}
+            strokeMiterlimit="10"
+            strokeWidth="32px"
+          />
+          <path
+            d="M256 176v160M336 256H176"
+            fill="none"
+            stroke={stroke}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="32px"
+          />
+        </svg>
+      )}
       {upload && (
         <svg
           xmlns="http://www.w3.org/2000/svg"

@@ -11,7 +11,6 @@ import { loadDB } from "../helpers/database/db";
 import { SongMetaData } from "./AudioContext";
 import { getMetaData } from "../helpers/metadata";
 import { AnimationItem } from "lottie-web";
-import { addToPlaylist } from "../helpers/database/addToPlaylist";
 import { loadPlaylists } from "../helpers/database/loadPlaylists";
 interface FileContextType {
   usingDBFiles: boolean;
@@ -163,10 +162,10 @@ export function TracksProvider({ children }: { children: ReactNode }) {
       fetchPlaylists();
     };
   }, []);
-  useEffect(() => {
-    if (!playlists) return;
-    console.log(playlists);
-  }, [playlists]);
+  // useEffect(() => {
+  //   if (!playlists) return;
+  //   console.log(playlists);
+  // }, [playlists]);
 
   return (
     <FileContext.Provider

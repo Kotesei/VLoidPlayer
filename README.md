@@ -36,11 +36,11 @@
 
 - [ ] Add a play next button which adds a song to the queue right after the current song (Should be added to queue and not care if it's already in the queue).
 
-- [ ] Database for storing play count and playlists
+- [ ] Database for storing play count and ~~playlists~~
 
-- [ ] Playlists (Should only save the file's name, metadata (if there is one), file size) should not contain any actual file just the things that will help search for the file. Searches the database and searches the other list to see if the song would be found. (If not found then the song will just be grayed out and unable to be selected) SHOULD ALSO BE ABLE TO CHANGE THE SONG ORDERS VIA DRAGGING.
+- [ ] ~~Playlists (Should only save the file's name, metadata (if there is one), file size) should not contain any actual file just the things that will help search for the file. Searches the database and searches the other list to see if the song would be found.~~ (If not found then the song will just be grayed out and unable to be selected) SHOULD ALSO BE ABLE TO CHANGE THE SONG ORDERS VIA DRAGGING.
 
-- [ ] SVG Animations for buttons
+- [ ] SVG Animations for buttons ~~(Made the search button, might make changes later on)~~
 
 - [ ] Ensure web app works well on mobile devices (Things such as the slider for seeking are bugged on mobile since it most likely uses a different event listener) also sizing should be dynamic and fit properly.
 

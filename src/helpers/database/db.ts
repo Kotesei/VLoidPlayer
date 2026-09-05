@@ -8,14 +8,17 @@ async function openDB(): Promise<IDBDatabase> {
       const db = request.result;
 
       if (!db.objectStoreNames.contains("playlistSongs")) {
-        db.createObjectStore("playlistSongs", {
+        const store = db.createObjectStore("playlistSongs", {
           keyPath: "id",
           autoIncrement: true,
+        });
+        store.createIndex("playlistId", "playlistId", {
+          unique: false,
         });
       }
 
       if (!db.objectStoreNames.contains("playlists")) {
-        db.createObjectStore("playlists", {
+        const store = db.createObjectStore("playlists", {
           keyPath: "id",
           autoIncrement: true,
         });

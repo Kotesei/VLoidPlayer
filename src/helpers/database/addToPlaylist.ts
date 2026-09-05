@@ -1,7 +1,10 @@
 import { DBFile } from "../../context/FileContext";
 import { db } from "./db";
 
-export async function addToPlaylist(file: DBFile, playlistId: number) {
+export async function addToPlaylist(file: DBFile | null, playlistId: number) {
+  console.log(file);
+  console.log("TESTs");
+  if (!file) return;
   const transaction = db.transaction("playlistSongs", "readwrite");
   const store = transaction.objectStore("playlistSongs");
 
