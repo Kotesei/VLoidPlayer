@@ -9,7 +9,7 @@ async function openDB(): Promise<IDBDatabase> {
 
       if (!db.objectStoreNames.contains("playlistSongs")) {
         const store = db.createObjectStore("playlistSongs", {
-          keyPath: "id",
+          keyPath: "songId",
           autoIncrement: true,
         });
         store.createIndex("playlistId", "playlistId", {
@@ -19,7 +19,7 @@ async function openDB(): Promise<IDBDatabase> {
 
       if (!db.objectStoreNames.contains("playlists")) {
         const store = db.createObjectStore("playlists", {
-          keyPath: "id",
+          keyPath: "playlistId",
           autoIncrement: true,
         });
       }

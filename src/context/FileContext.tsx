@@ -12,6 +12,7 @@ import { SongMetaData } from "./AudioContext";
 import { getMetaData } from "../helpers/metadata";
 import { AnimationItem } from "lottie-web";
 import { loadPlaylists } from "../helpers/database/loadPlaylists";
+import { getPlaylistSongs } from "../helpers/database/getPlaylistSongs";
 interface FileContextType {
   usingDBFiles: boolean;
   setUsingDBFiles: React.Dispatch<React.SetStateAction<boolean>>;
@@ -29,6 +30,7 @@ interface FileContextType {
   setDB: React.Dispatch<React.SetStateAction<DBFile[] | null>>;
   fetchPlaylists: () => void;
   playlists: Playlist[] | null;
+  playlistSongs: PlaylistAndSongs[] | null;
 }
 export interface DBFile {
   metadata: SongMetaData;
@@ -42,7 +44,20 @@ export interface AnimationData {
 
 export interface Playlist {
   playlistName: string;
-  id: number;
+  playlistId: number;
+}
+
+export interface PlaylistSong {
+  song_name?: string;
+  name?: string;
+  size: number;
+  playlistId: number;
+  songId: number;
+}
+
+interface PlaylistAndSongs {
+  playlistId: number;
+  songs: PlaylistSong[];
 }
 
 const FileContext = createContext<FileContextType | undefined>(undefined);
@@ -63,6 +78,9 @@ export function TracksProvider({ children }: { children: ReactNode }) {
   // Files from the local database on user's device
   const [db, setDB] = useState<DBFile[] | null>(null);
   const [playlists, setPlaylists] = useState<Playlist[] | null>(null);
+  const [playlistSongs, setPlaylistSongs] = useState<PlaylistAndSongs[] | null>(
+    null,
+  );
 
   // Contains the animation data and cover art
   const coverArtRef = useRef<HTMLDivElement | null>(null);
@@ -151,10 +169,20 @@ export function TracksProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // FIX THIS
   async function fetchPlaylists() {
     const playlists = await loadPlaylists();
     if (!playlists) return;
     setPlaylists(playlists);
+    const data: PlaylistAndSongs[] = [];
+    for (const playlist of playlists) {
+      const playlistId = playlist.playlistId;
+      const songs: PlaylistSong[] = await getPlaylistSongs(playlistId);
+      const playlistsAndSongs = { playlistId, songs };
+      data.push(playlistsAndSongs);
+    }
+    setPlaylistSongs(data);
+    return data;
   }
 
   useEffect(() => {
@@ -186,6 +214,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
         setUsingSamples,
         fetchPlaylists,
         playlists,
+        playlistSongs,
       }}
     >
       {children}

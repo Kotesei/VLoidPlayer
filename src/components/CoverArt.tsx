@@ -10,7 +10,7 @@ export function CoverArt() {
   const [initialized, setInitialized] = useState(false);
   const [width, setWidth] = useState<String | null>(null);
   // Will probably move this for speed control of the animation in the context in the future
-  const [currentSpeed, setSpeed] = useState<number>(2);
+  const [currentSpeed, setSpeed] = useState<number>(1);
   const [animationVisibility, setAnimationVisibility] = useState(true);
 
   async function toggleAnimation() {
@@ -68,7 +68,7 @@ export function CoverArt() {
     if (!isPlaying) return;
     if (initialized) return;
     if (!coverArtRef.current) return;
-    const src = "./src/assets/test2.json";
+    const src = "./src/assets/test.json";
     const animation = animate(coverArtRef.current, src);
     animation.setSpeed(currentSpeed);
     animationRef.current = { src, item: animation };
