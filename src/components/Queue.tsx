@@ -4,6 +4,12 @@ import { DBFile, useFiles } from "../context/FileContext";
 import { handleLike } from "../helpers/database/likeSong";
 import { Button } from "./Button";
 import { ReactSortable } from "react-sortablejs";
+import {
+  Listbox,
+  ListboxButton,
+  ListboxOption,
+  ListboxOptions,
+} from "@headlessui/react";
 
 type SortableDBFile = DBFile & {
   id: number;
@@ -23,7 +29,7 @@ export function Queue() {
 
   const { db, setDB, validFiles, setValidFiles, playlistSongs, playlists } =
     useFiles();
-  const [selectedPlaylist, setSelectedPlaylist] = useState(false);
+  const [selectedPlaylist, setSelectedPlaylist] = useState("Loaded Songs");
 
   const [sortableList, setSortableList] = useState<SortableDBFile[]>(() =>
     (isShuffling
@@ -106,15 +112,84 @@ export function Queue() {
     );
   }, [currentSong, sortableList]);
 
+  function handleChangeQueue({
+    all,
+    liked,
+    playlist,
+    playlistId,
+  }: {
+    all?: boolean;
+    liked?: boolean;
+    playlist?: boolean;
+    playlistId?: number;
+  }) {
+    if (all) {
+      console.log(all);
+      return;
+    }
+
+    if (liked) {
+      console.log(liked);
+      return;
+    }
+
+    if (playlist) {
+      console.log(playlistId);
+      return;
+    }
+  }
+
   return (
     <div className="h-[18dvh] w-full items-center gap-2 flex flex-col justify-end">
-      <div className="flex flex-col items-center flex-1 py-[3dvh] justify-end">
+      <div className="flex flex-col flex-1 py-[3dvh] gap-1 items-center justify-end">
         <h2 className="text-purple-300 text-[11px]">Playing From</h2>
-        <p className="text-purple-300 text-[10px]">
-          {selectedPlaylist
-            ? playlists?.find((playlist) => playlist.playlistId === 24)?.name
-            : "Uploaded List"}
-        </p>
+        <Listbox value={selectedPlaylist} onChange={setSelectedPlaylist}>
+          <ListboxButton className="text-[11px] bg-indigo-200 px-2 rounded-sm">
+            {selectedPlaylist}
+          </ListboxButton>
+          <ListboxOptions
+            anchor={{ to: "bottom", gap: "3px" }}
+            className="text-white backdrop-blur-xs text-[11px] border border-white rounded-sm flex flex-col"
+          >
+            <>
+              <ListboxOption
+                onClick={() => handleChangeQueue({ all: true })}
+                value={"Loaded Songs"}
+                className={
+                  "data-focus:bg-blue-100 text-center data-focus:text-black"
+                }
+              >
+                Loaded Songs
+              </ListboxOption>
+              <ListboxOption
+                value={"Liked Songs"}
+                onClick={() => handleChangeQueue({ liked: true })}
+                className={
+                  "data-focus:bg-blue-100 text-center data-focus:text-black"
+                }
+              >
+                Liked Songs
+              </ListboxOption>
+              {playlists?.map((playlist, key) => (
+                <ListboxOption
+                  onClick={() =>
+                    handleChangeQueue({
+                      playlist: true,
+                      playlistId: playlist.playlistId,
+                    })
+                  }
+                  className={
+                    "data-focus:bg-blue-100 text-center px-3 data-focus:text-black"
+                  }
+                  key={key}
+                  value={playlist.name}
+                >
+                  {playlist.name}
+                </ListboxOption>
+              ))}
+            </>
+          </ListboxOptions>
+        </Listbox>
       </div>
       <div className="min-h-[35%] flex justify-center relative w-full">
         <div
@@ -185,17 +260,6 @@ export function Queue() {
                     );
                   })}
                 </ReactSortable>
-              </div>
-              <div className="h-10 w-full flex justify-around">
-                <button className="bg-amber-100 px-2 rounded-lg">
-                  Change Playlist
-                </button>
-                <button className="bg-amber-100 px-2 rounded-lg">
-                  Shuffle Tracks
-                </button>
-                <button className="bg-amber-100 px-2 rounded-lg">
-                  Reorder Playlist
-                </button>
               </div>
             </>
           )}

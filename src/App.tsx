@@ -44,7 +44,6 @@ function App() {
     setDB,
     validFiles,
   } = useFiles();
-  const [activeSidebar, setActiveSidebar] = useState(true);
   const [handlingPlaylists, setHandlingPlaylists] = useState(false);
   const [creatingPlaylist, setCreatingPlaylist] = useState(false);
   const [value, setValue] = useState("");

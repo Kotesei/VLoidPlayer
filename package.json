@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.10",
     "@radix-ui/react-slider": "^1.4.7",
     "@tailwindcss/vite": "^4.3.3",
     "better-sqlite3": "^12.11.1",
