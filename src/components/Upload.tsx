@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DBFile, useFiles } from "../context/FileContext";
 import { clearDB, loadDB, removeFromDB } from "../helpers/database/db";
 import { handleLoadRandomSamples } from "../helpers/audio/samples";
+import { HoverContainer } from "./HoverContainer";
 
 // Starting point for new visitors (Web Version)
 export function Upload() {
@@ -19,7 +20,6 @@ export function Upload() {
     setUsingDBFiles,
   } = useFiles();
 
-  const [isHovering, setIsHovering] = useState<boolean>(false);
   const [showDBNotice, setDBNotice] = useState<boolean>(true);
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
 
@@ -46,21 +46,13 @@ export function Upload() {
     setUploadState(false);
   }
 
-  function handleHover(active: boolean) {
-    if (active) {
-      setIsHovering(true);
-    } else {
-      setIsHovering(false);
-    }
-  }
-
   async function handleClearDB() {
     await clearDB();
     setIsConfirming(false);
     setDB([]);
   }
 
-  function handleUseDBFiles(load: boolean) {
+  async function handleUseDBFiles(load: boolean) {
     if (!showDBNotice) return;
     setDBNotice(false);
     if (load) {
@@ -112,74 +104,13 @@ export function Upload() {
         className="p-5 w-[80dvw] h-[50dvh] bg-black border-2 border-white border-dashed rounded-2xl relative flex flex-col gap-5"
       >
         {db && db.length > 0 && (
-          <div
-            className=" hover:bg-red-400 hover:text-black border-white  absolute bottom-full -translate-y-0.5 border-2 text-white px-2 py-2 border-b-0 right-5 rounded-t-xl flex gap-2 h-[clamp(2rem,3vmin,8rem)] items-center"
-            onClick={() => setIsConfirming(true)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 512 512"
-              className="ionicon h-full"
-              stroke="white"
-            >
-              <path
-                d="m112 112 20 320c.95 18.49 14.4 32 32 32h184c17.67 0 30.87-13.51 32-32l20-320"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="32px"
-              />
-              <path
-                d="M80 112h352"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeMiterlimit="10"
-                strokeWidth="32px"
-              />
-              <path
-                d="M192 112V72h0a23.93 23.93 0 0 1 24-24h80a23.93 23.93 0 0 1 24 24h0v40M256 176v224M184 176l8 224M328 176l-8 224"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="32px"
-              />
-            </svg>
-            <p className="text-[clamp(10px,2vmin,15px)] whitespace-nowrap">
-              Clear Database
-            </p>
-          </div>
+          <HoverContainer manageData setIsConfirming={setIsConfirming} />
         )}
         <div
           className={`h-full flex-col gap-7 flex ${!files ? "justify-center" : "overflow-y-auto scrollbar-thin scrollbar-thumb-white"} items-center`}
         >
           {!usingDBFiles && db && db.length > 0 && showDBNotice && (
-            <div
-              onMouseEnter={() => handleHover(true)}
-              onMouseLeave={() => handleHover(false)}
-              className="shadow-inner shadow-white flex items-center left-5 justify-center rounded-t-xl border-dashed absolute text-center w-[clamp(1rem,35vmin,30rem)] p-2 bottom-full h-12 text-white"
-            >
-              <div
-                className={`w-full absolute bottom-full h-10 gap-10 flex items-center text-black transition-all duration-300 ${isHovering ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0 pointer-events-none"}`}
-              >
-                <button
-                  onClick={() => handleUseDBFiles(true)}
-                  className="bg-white flex-1 rounded-full"
-                >
-                  Yes
-                </button>
-                <button
-                  onClick={() => handleUseDBFiles(false)}
-                  className="bg-white flex-1 rounded-full"
-                >
-                  No
-                </button>
-              </div>
-              <p className="text-[clamp(10px,2vmin,15px)]">
-                Liked Songs Found in Database! Would you like to use those?
-              </p>
-            </div>
+            <HoverContainer dbImport handleUseDBFiles={handleUseDBFiles} />
           )}
           {files && (
             <>

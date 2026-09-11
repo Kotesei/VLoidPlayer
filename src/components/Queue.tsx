@@ -112,8 +112,7 @@ export function Queue() {
         <h2 className="text-purple-300 text-[11px]">Playing From</h2>
         <p className="text-purple-300 text-[10px]">
           {selectedPlaylist
-            ? playlists?.find((playlist) => playlist.playlistId === 24)
-                ?.playlistName
+            ? playlists?.find((playlist) => playlist.playlistId === 24)?.name
             : "Uploaded List"}
         </p>
       </div>

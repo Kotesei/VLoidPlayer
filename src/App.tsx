@@ -13,10 +13,12 @@ import { handleShuffle } from "./helpers/audio/shuffle";
 import { handleLike } from "./helpers/database/likeSong";
 import { Upload } from "./components/Upload";
 import { Playlist, useFiles } from "./context/FileContext";
-import { Sidebar } from "./components/Sidebar";
 import { ChangeEvent, useState } from "react";
-import { addToPlaylist } from "./helpers/database/addToPlaylist";
-import { createPlaylist } from "./helpers/database/createPlaylist";
+import {
+  addToPlaylist,
+  createPlaylist,
+  removeFromPlaylist,
+} from "./helpers/database/playlist";
 
 function App() {
   const {
@@ -90,7 +92,6 @@ function App() {
         ></div>
       )}
 
-      {!activeSidebar && <Sidebar />}
       {uploadState && <Upload />}
       {!uploadState && (
         <div className="h-full w-full flex-col flex items-center justify-end gap-3">
@@ -147,13 +148,21 @@ function App() {
                           return (
                             <div
                               onClick={() => {
-                                addToPlaylist(currentSong, playlist.playlistId);
+                                existsInPlaylist
+                                  ? removeFromPlaylist(
+                                      currentSong,
+                                      playlist.playlistId,
+                                    )
+                                  : addToPlaylist(
+                                      currentSong,
+                                      playlist.playlistId,
+                                    );
                                 setSelectingExistingPlaylist(false);
                               }}
                               className={`border-2 border-white  py-1.5 px-5 w-full text-center rounded-lg ${existsInPlaylist ? "bg-green-200 text-black" : "text-white"}`}
                               key={key}
                             >
-                              <p>{playlist.playlistName}</p>
+                              <p>{playlist.name}</p>
                             </div>
                           );
                         })}

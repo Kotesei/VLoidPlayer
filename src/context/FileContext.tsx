@@ -11,8 +11,7 @@ import { loadDB } from "../helpers/database/db";
 import { SongMetaData } from "./AudioContext";
 import { getMetaData } from "../helpers/metadata";
 import { AnimationItem } from "lottie-web";
-import { loadPlaylists } from "../helpers/database/loadPlaylists";
-import { getPlaylistSongs } from "../helpers/database/getPlaylistSongs";
+import { getPlaylistSongs, getPlaylists } from "../helpers/database/playlist";
 interface FileContextType {
   usingDBFiles: boolean;
   setUsingDBFiles: React.Dispatch<React.SetStateAction<boolean>>;
@@ -43,7 +42,7 @@ export interface AnimationData {
 }
 
 export interface Playlist {
-  playlistName: string;
+  name: string;
   playlistId: number;
 }
 
@@ -171,7 +170,7 @@ export function TracksProvider({ children }: { children: ReactNode }) {
 
   // FIX THIS
   async function fetchPlaylists() {
-    const playlists = await loadPlaylists();
+    const playlists = await getPlaylists();
     if (!playlists) return;
     setPlaylists(playlists);
     const data: PlaylistAndSongs[] = [];
@@ -190,10 +189,6 @@ export function TracksProvider({ children }: { children: ReactNode }) {
       fetchPlaylists();
     };
   }, []);
-  // useEffect(() => {
-  //   if (!playlists) return;
-  //   console.log(playlists);
-  // }, [playlists]);
 
   return (
     <FileContext.Provider

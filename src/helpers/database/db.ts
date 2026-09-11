@@ -22,6 +22,9 @@ async function openDB(): Promise<IDBDatabase> {
           keyPath: "playlistId",
           autoIncrement: true,
         });
+        store.createIndex("name", "name", {
+          unique: false,
+        });
       }
 
       if (!db.objectStoreNames.contains("likedSongs")) {
