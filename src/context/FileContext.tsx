@@ -54,7 +54,7 @@ export interface PlaylistSong {
   songId: number;
 }
 
-interface PlaylistAndSongs {
+export interface PlaylistAndSongs {
   playlistId: number;
   songs: PlaylistSong[];
 }

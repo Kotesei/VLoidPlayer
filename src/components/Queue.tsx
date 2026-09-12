@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAudio } from "../context/AudioContext";
-import { DBFile, useFiles } from "../context/FileContext";
+import { DBFile, PlaylistAndSongs, useFiles } from "../context/FileContext";
 import { handleLike } from "../helpers/database/likeSong";
 import { Button } from "./Button";
 import { ReactSortable } from "react-sortablejs";
@@ -13,6 +13,13 @@ import {
 
 type SortableDBFile = DBFile & {
   id: number;
+};
+
+type SortablePlaylistFile = {
+  file: { name: string; size: number };
+  metadata: { song_name: string };
+  id: number;
+  exists: boolean;
 };
 
 export function Queue() {
@@ -30,6 +37,9 @@ export function Queue() {
   const { db, setDB, validFiles, setValidFiles, playlistSongs, playlists } =
     useFiles();
   const [selectedPlaylist, setSelectedPlaylist] = useState("Loaded Songs");
+  const [playlistData, setPlaylistData] = useState<PlaylistAndSongs | null>(
+    null,
+  );
 
   const [sortableList, setSortableList] = useState<SortableDBFile[]>(() =>
     (isShuffling
@@ -40,6 +50,9 @@ export function Queue() {
       id: key,
     })),
   );
+  const [sortablePlaylist, setSortablePlayist] = useState<
+    SortablePlaylistFile[]
+  >([]);
   const [nextSong, setNextSong] = useState(
     sortableList[
       sortableList.findIndex(
@@ -85,7 +98,31 @@ export function Queue() {
 
   useEffect(() => {
     // Handle selected playlist here:
-    if (selectedPlaylist) return;
+    if (playlistData) {
+      const songs: SortablePlaylistFile[] = [];
+      playlistData.songs.map((song) => {
+        const existsInFiles = validFiles?.find(
+          (validFile) =>
+            validFile.file.size === song.size &&
+            (validFile.file.name === song.name ||
+              validFile.metadata.song_name === song.song_name),
+        );
+        const songData = {
+          file: {
+            name: song.name ?? "",
+            size: song.size,
+          },
+          metadata: {
+            song_name: song.song_name ?? "",
+          },
+          id: song.songId,
+          exists: existsInFiles ? true : false,
+        };
+        songs.push(songData);
+      });
+      setSortablePlayist(songs);
+      return;
+    }
 
     ///////////////////////////////////
     if (!validFiles) return;
@@ -99,7 +136,7 @@ export function Queue() {
         })),
       );
     }
-  }, [selectedPlaylist, isShuffling]);
+  }, [playlistData, isShuffling]);
 
   useEffect(() => {
     if (!currentSong) return;
@@ -134,7 +171,11 @@ export function Queue() {
     }
 
     if (playlist) {
-      console.log(playlistId);
+      const playlist = playlistSongs?.find(
+        (playlist) => playlist.playlistId === playlistId,
+      );
+      if (!playlist) return;
+      setPlaylistData(playlist);
       return;
     }
   }
@@ -199,67 +240,154 @@ export function Queue() {
           {showingQueue && (
             <>
               <div className="w-full h-full text-white overflow-auto scrollbar-thin scrollbar-thumb-white px-[clamp(0rem,2%,5rem)]">
-                <ReactSortable
-                  className="px-2 text-xs pt-3 w-full h-full flex flex-col gap-2"
-                  list={sortableList}
-                  setList={(newList) => {
-                    if (!validFiles) return;
-                    setSortableList(newList);
-                    if (!isShuffling) setValidFiles(newList);
-                    if (isShuffling)
-                      setIsShuffling({
-                        validFiles,
-                        shuffledTrackList: newList,
-                      });
-                    setNextSong(
-                      newList[
-                        newList.findIndex(
-                          (item) => item.file.name === currentSong?.file.name,
-                        ) + 1
-                      ],
-                    );
-                  }}
-                >
-                  {sortableList?.map((song, key) => {
-                    return (
-                      <div
-                        onClick={() => handleChangeSong(song)}
-                        key={key}
-                        className={`${song.file === currentSong?.file ? "bg-[#403b9ca5]" : "bg-[#000c32a5]"} p-3 rounded-lg border-white flex justify-between items-center border-2 gap-5 relative`}
-                      >
-                        {db?.find(
-                          (dbFile) =>
-                            dbFile.file.name === song.file.name &&
-                            dbFile.file.size === song.file.size,
-                        ) && (
-                          <div
-                            className="absolute left-0 -translate-x-1/2 top-1 -translate-y-1/2"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Button
-                              altSizing
-                              like
-                              file={song}
-                              db={db}
-                              likeSong={() => {
-                                handleLike(song, setDB);
-                              }}
-                              stroke="oklch(82.7% 0.119 306.383)"
-                              fill="oklch(82.7% 0.119 306.383)"
-                            />
+                {playlistData && (
+                  <ReactSortable
+                    className="px-2 text-xs pt-3 w-full h-full flex flex-col gap-2"
+                    list={sortablePlaylist}
+                    setList={(newList) => {
+                      if (!validFiles) return;
+                      setSortablePlayist(newList);
+                      // if (isShuffling)
+                      //   setIsShuffling({
+                      //     validFiles,
+                      //     shuffledTrackList: newList,
+                      //   });
+                      // setNextSong(
+                      //   newList[
+                      //     newList.findIndex(
+                      //       (item) => item.file.name === currentSong?.file.name,
+                      //     ) + 1
+                      //   ],
+                      // );
+                    }}
+                  >
+                    {sortablePlaylist?.map((playlistSong, key) => {
+                      const song = validFiles?.find(
+                        (validFile) =>
+                          validFile.file.size === playlistSong.file.size &&
+                          (validFile.file.name === playlistSong.file.name ||
+                            validFile.metadata.song_name ===
+                              playlistSong.metadata.song_name),
+                      );
+
+                      const active =
+                        song?.file.size === currentSong?.file.size &&
+                        (song?.file.name === currentSong?.file.name ||
+                          song?.metadata.song_name ===
+                            currentSong?.metadata.song_name);
+                      return (
+                        <div
+                          onClick={() => {
+                            if (!playlistSong.exists || !song) return;
+                            handleChangeSong(song);
+                          }}
+                          key={key}
+                          className={`${playlistSong.exists ? `border-white ${active ? "bg-[#403b9ca5]" : "bg-[#000c32a5]"}` : "border-red-400 bg-black blur-[1px]"} p-3 rounded-lg  flex justify-between items-center border-2 gap-5 relative`}
+                        >
+                          {playlistSong.exists &&
+                            db?.find(
+                              (dbFile) =>
+                                dbFile.file.name === song?.file.name &&
+                                dbFile.file.size === song?.file.size,
+                            ) && (
+                              <div
+                                className="absolute left-0 -translate-x-1/2 top-1 -translate-y-1/2"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Button
+                                  altSizing
+                                  like
+                                  file={song}
+                                  db={db}
+                                  likeSong={() => {
+                                    if (!playlistSong.exists || !song) return;
+                                    handleLike(song, setDB);
+                                  }}
+                                  stroke="oklch(82.7% 0.119 306.383)"
+                                  fill="oklch(82.7% 0.119 306.383)"
+                                />
+                              </div>
+                            )}
+                          <div>
+                            <p>
+                              {playlistSong?.metadata?.song_name ??
+                                playlistSong?.file.name}
+                            </p>
+                            <p className="text-gray-400">
+                              {song?.metadata?.artist}
+                            </p>
                           </div>
-                        )}
-                        <div>
-                          <p>{song?.metadata?.song_name ?? song?.file.name}</p>
-                          <p className="text-gray-400">
-                            {song?.metadata?.artist}
-                          </p>
+                          <p>{song?.metadata?.duration}</p>
                         </div>
-                        <p>{song?.metadata?.duration}</p>
-                      </div>
-                    );
-                  })}
-                </ReactSortable>
+                      );
+                    })}
+                  </ReactSortable>
+                )}
+                {!playlistData && (
+                  <ReactSortable
+                    className="px-2 text-xs pt-3 w-full h-full flex flex-col gap-2"
+                    list={sortableList}
+                    setList={(newList) => {
+                      if (!validFiles) return;
+                      setSortableList(newList);
+                      if (!isShuffling) setValidFiles(newList);
+                      if (isShuffling)
+                        setIsShuffling({
+                          validFiles,
+                          shuffledTrackList: newList,
+                        });
+                      setNextSong(
+                        newList[
+                          newList.findIndex(
+                            (item) => item.file.name === currentSong?.file.name,
+                          ) + 1
+                        ],
+                      );
+                    }}
+                  >
+                    {sortableList?.map((song, key) => {
+                      return (
+                        <div
+                          onClick={() => handleChangeSong(song)}
+                          key={key}
+                          className={`${song.file === currentSong?.file ? "bg-[#403b9ca5]" : "bg-[#000c32a5]"} p-3 rounded-lg border-white flex justify-between items-center border-2 gap-5 relative`}
+                        >
+                          {db?.find(
+                            (dbFile) =>
+                              dbFile.file.name === song.file.name &&
+                              dbFile.file.size === song.file.size,
+                          ) && (
+                            <div
+                              className="absolute left-0 -translate-x-1/2 top-1 -translate-y-1/2"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Button
+                                altSizing
+                                like
+                                file={song}
+                                db={db}
+                                likeSong={() => {
+                                  handleLike(song, setDB);
+                                }}
+                                stroke="oklch(82.7% 0.119 306.383)"
+                                fill="oklch(82.7% 0.119 306.383)"
+                              />
+                            </div>
+                          )}
+                          <div>
+                            <p>
+                              {song?.metadata?.song_name ?? song?.file.name}
+                            </p>
+                            <p className="text-gray-400">
+                              {song?.metadata?.artist}
+                            </p>
+                          </div>
+                          <p>{song?.metadata?.duration}</p>
+                        </div>
+                      );
+                    })}
+                  </ReactSortable>
+                )}
               </div>
             </>
           )}
